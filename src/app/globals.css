@@ -1,26 +1,63 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #faf7f0;
+  --foreground: #241010;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-maroon-50: #fbebeb;
+  --color-maroon-100: #f3d1d1;
+  --color-maroon-200: #e5a3a3;
+  --color-maroon-300: #d17575;
+  --color-maroon-400: #b84a4a;
+  --color-maroon-500: #8f2626;
+  --color-maroon-600: #7a1e1e;
+  --color-maroon-700: #611818;
+  --color-maroon-800: #4a1212;
+  --color-maroon-900: #330d0d;
+  --color-maroon-950: #200808;
+
+  --color-gold-50: #fdf6e9;
+  --color-gold-100: #fbe8c2;
+  --color-gold-200: #f6d089;
+  --color-gold-300: #f0b654;
+  --color-gold-400: #e89a2e;
+  --color-gold-500: #d9861f;
+  --color-gold-600: #b96a17;
+  --color-gold-700: #8f5312;
+  --color-gold-800: #693d0d;
+  --color-gold-900: #452808;
+
+  --color-cream-50: #fffdf9;
+  --color-cream-100: #faf7f0;
+  --color-cream-200: #f3ede1;
+  --color-cream-300: #e9dfc9;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+@layer utilities {
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(122, 30, 30, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(122, 30, 30, 0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .text-gradient-gold {
+    background-image: linear-gradient(90deg, #e89a2e, #d9861f);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 }

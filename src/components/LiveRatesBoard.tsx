@@ -43,12 +43,17 @@ export default function LiveRatesBoard({
             </tr>
           </thead>
           <tbody className="divide-y divide-cream-200">
-            {rates.map((rate) => {
+            {rates.map((rate, index) => {
               const coin = coins.find((c) => c.id === rate.id);
               if (!coin) return null;
               const positive = rate.usd24hChange >= 0;
               return (
-                <tr key={rate.id} className="hover:bg-cream-100/60">
+                <tr
+                  key={rate.id}
+                  className={`transition-colors hover:bg-gold-50/60 ${
+                    index % 2 === 1 ? "bg-cream-50/60" : ""
+                  }`}
+                >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <span
@@ -106,7 +111,7 @@ export default function LiveRatesBoard({
           return (
             <div
               key={rate.id}
-              className="rounded-2xl border border-cream-300 bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-cream-300 bg-white p-5 shadow-sm transition-colors hover:border-gold-300"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

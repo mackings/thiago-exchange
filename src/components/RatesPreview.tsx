@@ -11,7 +11,10 @@ export default async function RatesPreview() {
     <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="font-display text-3xl font-extrabold text-maroon-950">
+          <span className="inline-flex rounded-full border border-maroon-600/20 bg-maroon-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-maroon-700">
+            Live Market
+          </span>
+          <h2 className="mt-4 font-display text-3xl font-extrabold text-maroon-950 sm:text-4xl">
             Today&apos;s rates
           </h2>
           <p className="mt-2 text-maroon-950/60">
@@ -21,10 +24,13 @@ export default async function RatesPreview() {
         </div>
         <Link
           href="/rates"
-          className="inline-flex items-center gap-1 font-bold text-maroon-700 hover:text-maroon-800"
+          className="group inline-flex items-center gap-1 font-bold text-maroon-700 hover:text-maroon-800"
         >
           Full rates board
-          <ArrowRight size={16} />
+          <ArrowRight
+            size={16}
+            className="transition-transform group-hover:translate-x-1"
+          />
         </Link>
       </div>
 

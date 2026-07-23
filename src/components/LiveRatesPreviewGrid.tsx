@@ -25,7 +25,7 @@ export default function LiveRatesPreviewGrid({
           return (
             <div
               key={rate.id}
-              className="rounded-2xl border border-cream-300 bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-cream-300 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-gold-300 hover:shadow-md"
             >
               <div className="flex items-center gap-3">
                 <span
@@ -43,7 +43,7 @@ export default function LiveRatesPreviewGrid({
                   </p>
                 </div>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+              <div className="mt-4 grid grid-cols-2 gap-3 border-t border-cream-200 pt-4 text-sm">
                 <div>
                   <p className="text-maroon-950/40">We Buy</p>
                   <p className="font-bold text-maroon-700 tabular-nums">

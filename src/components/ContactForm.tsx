@@ -45,7 +45,9 @@ export default function ContactForm() {
   if (submitted) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center">
-        <CheckCircle2 className="text-emerald-600" size={40} />
+        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+          <CheckCircle2 className="text-emerald-600" size={32} />
+        </span>
         <h3 className="font-display text-xl font-bold text-maroon-950">
           Message ready to send
         </h3>
@@ -80,7 +82,7 @@ export default function ContactForm() {
             type="text"
             required
             placeholder="Jane Doe"
-            className="rounded-lg border border-cream-300 bg-cream-50 px-4 py-2.5 text-sm text-maroon-950 outline-none focus:border-maroon-600 focus:ring-2 focus:ring-maroon-600/20"
+            className="rounded-lg border border-cream-300 bg-cream-50 px-4 py-2.5 text-sm text-maroon-950 outline-none transition-colors hover:border-cream-400 focus:border-maroon-600 focus:ring-2 focus:ring-maroon-600/20"
           />
         </div>
 
@@ -97,7 +99,7 @@ export default function ContactForm() {
             type="text"
             required
             placeholder="you@email.com or WhatsApp number"
-            className="rounded-lg border border-cream-300 bg-cream-50 px-4 py-2.5 text-sm text-maroon-950 outline-none focus:border-maroon-600 focus:ring-2 focus:ring-maroon-600/20"
+            className="rounded-lg border border-cream-300 bg-cream-50 px-4 py-2.5 text-sm text-maroon-950 outline-none transition-colors hover:border-cream-400 focus:border-maroon-600 focus:ring-2 focus:ring-maroon-600/20"
           />
         </div>
 
@@ -109,7 +111,7 @@ export default function ContactForm() {
             id="coin"
             name="coin"
             defaultValue=""
-            className="rounded-lg border border-cream-300 bg-cream-50 px-4 py-2.5 text-sm text-maroon-950 outline-none focus:border-maroon-600 focus:ring-2 focus:ring-maroon-600/20"
+            className="rounded-lg border border-cream-300 bg-cream-50 px-4 py-2.5 text-sm text-maroon-950 outline-none transition-colors hover:border-cream-400 focus:border-maroon-600 focus:ring-2 focus:ring-maroon-600/20"
           >
             <option value="">Select a coin</option>
             {coins.map((coin) => (
@@ -133,7 +135,7 @@ export default function ContactForm() {
             required
             rows={5}
             placeholder="Tell us how much you'd like to buy or sell, and any questions you have."
-            className="resize-none rounded-lg border border-cream-300 bg-cream-50 px-4 py-2.5 text-sm text-maroon-950 outline-none focus:border-maroon-600 focus:ring-2 focus:ring-maroon-600/20"
+            className="resize-none rounded-lg border border-cream-300 bg-cream-50 px-4 py-2.5 text-sm text-maroon-950 outline-none transition-colors hover:border-cream-400 focus:border-maroon-600 focus:ring-2 focus:ring-maroon-600/20"
           />
         </div>
       </div>
@@ -144,9 +146,12 @@ export default function ContactForm() {
 
       <button
         type="submit"
-        className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-maroon-600 to-maroon-700 px-6 py-3 font-bold text-cream-50 shadow-lg shadow-maroon-900/20 transition hover:brightness-110 sm:w-auto"
+        className="group mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-maroon-700 px-6 py-3 font-bold text-cream-50 transition-colors hover:bg-maroon-800 sm:w-auto"
       >
-        <Send size={18} />
+        <Send
+          size={18}
+          className="transition-transform group-hover:translate-x-0.5"
+        />
         Send via WhatsApp
       </button>
       <p className="mt-3 text-xs text-maroon-950/40">

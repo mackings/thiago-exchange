@@ -28,7 +28,7 @@ export default function ContactPage() {
             href={whatsappLink("Hello Thiago Exchange, I'd like to trade.")}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-4 rounded-2xl border border-cream-300 bg-white p-5 shadow-sm transition hover:border-[#25D366]/40"
+            className="flex items-center gap-4 rounded-2xl border border-cream-300 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-[#25D366]/40 hover:shadow-md"
           >
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#25D366]/10 text-[#25D366]">
               <SiWhatsapp size={22} />
@@ -47,7 +47,7 @@ export default function ContactPage() {
             href={site.instagramUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-4 rounded-2xl border border-cream-300 bg-white p-5 shadow-sm transition hover:border-gold-400/50"
+            className="flex items-center gap-4 rounded-2xl border border-cream-300 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-gold-400/50 hover:shadow-md"
           >
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gold-400/10 text-gold-600">
               <SiInstagram size={22} />

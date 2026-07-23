@@ -11,7 +11,7 @@ export default function CoinsStrip() {
           {coins.map((coin) => (
             <div
               key={coin.id}
-              className="flex items-center gap-2 text-maroon-950/70"
+              className="flex items-center gap-2 text-maroon-950/70 transition-colors hover:text-maroon-950"
               title={coin.name}
             >
               <coin.icon size={22} style={{ color: coin.color }} />

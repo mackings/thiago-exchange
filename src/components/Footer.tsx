@@ -6,7 +6,7 @@ import { navLinks, site, whatsappLink } from "@/lib/site";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-cream-300 bg-maroon-950 text-cream-100">
+    <footer className="bg-grid-dark border-t border-gold-400/20 bg-maroon-950 text-cream-100">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-3">
         <div>
           <Logo variant="light" markSize={44} />
@@ -25,7 +25,7 @@ export default function Footer() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="text-sm text-cream-100/80 hover:text-gold-300"
+                  className="text-sm text-cream-100/80 transition-colors hover:text-gold-300"
                 >
                   {link.label}
                 </Link>
@@ -45,7 +45,7 @@ export default function Footer() {
                 href={whatsappLink("Hello Thiago Exchange, I'd like to trade.")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-gold-300"
+                className="transition-colors hover:text-gold-300"
               >
                 {site.whatsappDisplay}
               </a>
@@ -56,14 +56,17 @@ export default function Footer() {
                 href={site.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-gold-300"
+                className="transition-colors hover:text-gold-300"
               >
                 @{site.instagramHandle}
               </a>
             </li>
             <li className="flex items-center gap-2">
               <Mail size={16} className="text-gold-300" />
-              <Link href="/contact" className="hover:text-gold-300">
+              <Link
+                href="/contact"
+                className="transition-colors hover:text-gold-300"
+              >
                 Send us a message
               </Link>
             </li>

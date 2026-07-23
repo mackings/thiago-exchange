@@ -40,10 +40,19 @@
   --color-cream-300: #e9dfc9;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--color-gold-200);
+  color: var(--color-maroon-950);
 }
 
 @layer utilities {
@@ -54,10 +63,10 @@ body {
     background-size: 32px 32px;
   }
 
-  .text-gradient-gold {
-    background-image: linear-gradient(90deg, #e89a2e, #d9861f);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  .bg-grid-dark {
+    background-image:
+      linear-gradient(rgba(253, 246, 233, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(253, 246, 233, 0.05) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
 }

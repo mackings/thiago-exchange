@@ -8,12 +8,8 @@ export default function PageHeader({
   description: string;
 }) {
   return (
-    <section className="relative overflow-hidden bg-maroon-950 py-16 text-cream-100">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-24 right-[-5%] h-72 w-72 rounded-full bg-gold-400/20 blur-3xl"
-      />
-      <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6">
+    <section className="bg-grid-dark border-b border-gold-400/20 bg-maroon-950 py-16 text-cream-100 sm:py-20">
+      <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
         <span className="inline-flex rounded-full border border-gold-400/40 bg-white/5 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-gold-300">
           {eyebrow}
         </span>

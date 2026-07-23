@@ -28,10 +28,13 @@ const points = [
 
 export default function WhyChooseUs() {
   return (
-    <section className="bg-maroon-950 py-16 text-cream-100">
+    <section className="bg-grid-dark bg-maroon-950 py-16 text-cream-100 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="text-center">
-          <h2 className="font-display text-3xl font-extrabold">
+          <span className="inline-flex rounded-full border border-gold-400/30 bg-white/5 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-gold-300">
+            Why Us
+          </span>
+          <h2 className="mt-4 font-display text-3xl font-extrabold sm:text-4xl">
             Why trade with Thiago Exchange
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-cream-100/60">
@@ -44,7 +47,7 @@ export default function WhyChooseUs() {
           {points.map((point) => (
             <div
               key={point.title}
-              className="rounded-2xl border border-cream-100/10 bg-white/5 p-6"
+              className="rounded-2xl border border-cream-100/10 bg-white/5 p-6 transition-colors hover:border-gold-400/30 hover:bg-white/[0.08]"
             >
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gold-400/20 text-gold-300">
                 <point.icon size={20} />

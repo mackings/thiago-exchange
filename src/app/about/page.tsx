@@ -72,18 +72,18 @@ export default function AboutPage() {
         </p>
       </section>
 
-      <section className="bg-cream-200/60 py-16">
+      <section className="bg-cream-200/60 py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <h2 className="text-center font-display text-3xl font-extrabold text-maroon-950">
+          <h2 className="text-center font-display text-3xl font-extrabold text-maroon-950 sm:text-4xl">
             What we stand for
           </h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {values.map((value) => (
               <div
                 key={value.title}
-                className="rounded-2xl border border-cream-300 bg-white p-6 text-center shadow-sm"
+                className="rounded-2xl border border-cream-300 bg-white p-6 text-center shadow-sm transition-all hover:-translate-y-1 hover:border-gold-300 hover:shadow-md"
               >
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-maroon-600 to-maroon-700 text-cream-50">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-maroon-700 text-cream-50">
                   <value.icon size={22} />
                 </div>
                 <h3 className="mt-4 font-display font-bold text-maroon-950">
@@ -98,9 +98,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <div className="text-center">
-          <h2 className="font-display text-3xl font-extrabold text-maroon-950">
+          <h2 className="font-display text-3xl font-extrabold text-maroon-950 sm:text-4xl">
             Coins we trade
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-maroon-950/60">
@@ -111,7 +111,7 @@ export default function AboutPage() {
           {coins.map((coin) => (
             <div
               key={coin.id}
-              className="flex flex-col items-center gap-2 rounded-2xl border border-cream-300 bg-white px-4 py-5 text-center shadow-sm"
+              className="flex flex-col items-center gap-2 rounded-2xl border border-cream-300 bg-white px-4 py-5 text-center shadow-sm transition-all hover:-translate-y-1 hover:border-gold-300 hover:shadow-md"
             >
               <coin.icon size={28} style={{ color: coin.color }} />
               <span className="text-sm font-bold text-maroon-950">

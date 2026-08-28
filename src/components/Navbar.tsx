@@ -6,9 +6,11 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import Logo from "@/components/Logo";
 import { navLinks } from "@/lib/site";
+import { useSession } from "@/lib/session-context";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { user } = useSession();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -50,10 +52,10 @@ export default function Navbar() {
             );
           })}
           <Link
-            href="/contact"
+            href={user ? "/market" : "/signup"}
             className="rounded-full bg-maroon-700 px-5 py-2 text-sm font-bold text-cream-50 transition-colors hover:bg-maroon-800"
           >
-            Get Started
+            {user ? "Trade Now" : "Get Started"}
           </Link>
         </nav>
 
@@ -87,11 +89,11 @@ export default function Navbar() {
             );
           })}
           <Link
-            href="/contact"
+            href={user ? "/market" : "/signup"}
             onClick={() => setOpen(false)}
             className="mt-2 rounded-full bg-maroon-700 px-4 py-2 text-center text-sm font-bold text-cream-50"
           >
-            Get Started
+            {user ? "Trade Now" : "Get Started"}
           </Link>
         </nav>
       )}

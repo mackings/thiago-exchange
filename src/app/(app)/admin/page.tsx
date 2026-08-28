@@ -4,15 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, ApiError, type AdDTO, type DisputeDTO, type KYCDTO } from "@/lib/api";
 import { useSession } from "@/lib/session-context";
-import {
-  cardClass,
-  heroPanelClass,
-  heroSheetClass,
-  inputClass,
-  labelClass,
-  primaryButtonClass,
-  secondaryButtonClass,
-} from "@/lib/ui";
+import { cardClass, inputClass, labelClass, pageClass, primaryButtonClass, secondaryButtonClass, topBarClass } from "@/lib/ui";
 import { formatNgn } from "@/lib/format";
 
 type Tab = "ads" | "kyc" | "disputes" | "treasury";
@@ -37,12 +29,12 @@ export default function AdminPage() {
 
   return (
     <div>
-      <div className={heroPanelClass}>
-        <p className="text-xs font-bold uppercase tracking-wide text-white/50">Merchant console</p>
-        <h1 className="font-display text-2xl font-extrabold">Admin</h1>
+      <div className={topBarClass}>
+        <h1 className="font-display text-xl font-extrabold text-maroon-950">Admin</h1>
+        <span className="text-xs font-semibold text-maroon-950/40">Merchant console</span>
       </div>
-      <div className={heroSheetClass}>
-        <div className="flex gap-1 overflow-x-auto rounded-full border border-cream-300 bg-white p-1">
+      <div className={pageClass}>
+        <div className="flex gap-1 overflow-x-auto rounded-full bg-cream-200/70 p-1">
           {tabs.map((t) => (
             <button
               key={t.key}

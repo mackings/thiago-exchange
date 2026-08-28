@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { ShieldCheck, ShieldAlert, ShieldQuestion } from "lucide-react";
 import { api, ApiError, type KYCDTO } from "@/lib/api";
 import { useSession } from "@/lib/session-context";
-import { cardClass, heroPanelClass, heroSheetClass, inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
+import { inputClass, pageClass, primaryButtonClass, topBarClass } from "@/lib/ui";
 
 const statusMeta: Record<KYCDTO["status"], { label: string; className: string; icon: typeof ShieldCheck }> = {
   unverified: { label: "Not submitted", className: "bg-cream-200 text-maroon-950/60", icon: ShieldQuestion },
@@ -58,87 +58,73 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading)
-    return (
-      <div>
-        <div className={heroPanelClass}>
-          <h1 className="font-display text-2xl font-extrabold">Profile</h1>
-        </div>
-        <div className={heroSheetClass}>
-          <p className="text-sm text-maroon-950/50">Loading profile…</p>
-        </div>
-      </div>
-    );
-
   return (
     <div>
-      <div className={heroPanelClass}>
-        <div className="flex items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 font-display text-lg font-bold">
-            {user?.fullName?.[0]?.toUpperCase() ?? "U"}
-          </span>
-          <div>
-            <p className="font-display text-lg font-extrabold">{user?.fullName}</p>
-            <p className="text-sm text-white/60">{user?.email}</p>
-          </div>
-        </div>
-        <div className={`mt-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${meta.className}`}>
-          <Icon size={14} />
-          Verification: {meta.label}
-        </div>
+      <div className={topBarClass}>
+        <h1 className="font-display text-xl font-extrabold text-maroon-950">Profile</h1>
       </div>
 
-      <div className={heroSheetClass}>
-        <div className="flex flex-col gap-4">
-          {kyc?.reviewNote && status === "rejected" && (
-            <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">{kyc.reviewNote}</p>
-          )}
+      <div className={pageClass}>
+        {loading ? (
+          <p className="text-sm text-maroon-950/50">Loading profile…</p>
+        ) : (
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-maroon-700 font-display text-lg font-bold text-white">
+                {user?.fullName?.[0]?.toUpperCase() ?? "U"}
+              </span>
+              <div>
+                <p className="font-display text-lg font-extrabold text-maroon-950">{user?.fullName}</p>
+                <p className="text-sm text-maroon-950/50">{user?.email}</p>
+              </div>
+            </div>
+            <div className={`inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${meta.className}`}>
+              <Icon size={14} />
+              Verification: {meta.label}
+            </div>
 
-          {canSubmit && (
-            <form onSubmit={handleSubmit} className={`${cardClass} flex flex-col gap-4`}>
-          <p className="font-bold text-maroon-950">Verify your identity</p>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="fullName" className={labelClass}>
-              Full legal name
-            </label>
-            <input id="fullName" name="fullName" required defaultValue={user?.fullName} className={inputClass} />
+            {kyc?.reviewNote && status === "rejected" && (
+              <p className="rounded-xl bg-red-50 p-4 text-sm text-red-600">{kyc.reviewNote}</p>
+            )}
+
+            {canSubmit && (
+              <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                <p className="mt-2 font-bold text-maroon-950">Verify your identity</p>
+                <input
+                  id="fullName"
+                  name="fullName"
+                  required
+                  defaultValue={user?.fullName}
+                  placeholder="Full legal name"
+                  className={inputClass}
+                />
+                <select id="idType" name="idType" required defaultValue="" className={inputClass}>
+                  <option value="" disabled>
+                    Select ID type
+                  </option>
+                  <option value="national_id">National ID (NIN)</option>
+                  <option value="passport">International Passport</option>
+                  <option value="drivers_license">Driver&apos;s License</option>
+                  <option value="voters_card">Voter&apos;s Card</option>
+                </select>
+                <input id="idNumber" name="idNumber" required placeholder="ID number" className={inputClass} />
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-sm font-semibold text-maroon-950/70">ID document (photo or scan)</span>
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                    className="block text-sm text-maroon-950/70 file:mr-3 file:rounded-full file:border-0 file:bg-maroon-700 file:px-4 file:py-2 file:text-sm file:font-bold file:text-cream-50"
+                  />
+                </div>
+                {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
+                <button type="submit" disabled={submitting} className={`${primaryButtonClass} mt-1`}>
+                  {submitting ? "Submitting…" : "Submit for verification"}
+                </button>
+              </form>
+            )}
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="idType" className={labelClass}>
-              ID type
-            </label>
-            <select id="idType" name="idType" required defaultValue="" className={inputClass}>
-              <option value="" disabled>
-                Select ID type
-              </option>
-              <option value="national_id">National ID (NIN)</option>
-              <option value="passport">International Passport</option>
-              <option value="drivers_license">Driver&apos;s License</option>
-              <option value="voters_card">Voter&apos;s Card</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="idNumber" className={labelClass}>
-              ID number
-            </label>
-            <input id="idNumber" name="idNumber" required className={inputClass} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className={labelClass}>ID document (photo or scan)</label>
-            <input
-              type="file"
-              accept="image/*,application/pdf"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="block text-sm text-maroon-950/70 file:mr-3 file:rounded-full file:border-0 file:bg-maroon-700 file:px-4 file:py-2 file:text-sm file:font-bold file:text-cream-50"
-            />
-          </div>
-              {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
-              <button type="submit" disabled={submitting} className={primaryButtonClass}>
-                {submitting ? "Submitting…" : "Submit for verification"}
-              </button>
-            </form>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

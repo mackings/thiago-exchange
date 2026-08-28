@@ -9,14 +9,7 @@ import { useTradeSocket } from "@/hooks/useTradeSocket";
 import OrderStatusStepper from "@/components/app/OrderStatusStepper";
 import TradeChat from "@/components/app/TradeChat";
 import CountdownTimer from "@/components/app/CountdownTimer";
-import {
-  cardClass,
-  heroPanelClass,
-  heroSheetClass,
-  inputClass,
-  primaryButtonClass,
-  secondaryButtonClass,
-} from "@/lib/ui";
+import { flatBoxClass, inputClass, pageClass, primaryButtonClass, secondaryButtonClass, topBarClass } from "@/lib/ui";
 import { formatNgn } from "@/lib/format";
 
 export default function TradeRoomPage() {
@@ -76,47 +69,40 @@ export default function TradeRoomPage() {
 
   return (
     <div>
-      <div className={heroPanelClass}>
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            aria-label="Back"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80"
-          >
-            <ArrowLeft size={18} />
-          </button>
-          {["awaiting_payment", "payment_marked"].includes(order.status) && (
-            <CountdownTimer deadline={order.paymentDeadline} />
-          )}
-        </div>
-
-        <p className="mt-5 text-xs font-bold uppercase tracking-wide text-white/50">
-          {traderIsBuying ? "Buying" : "Selling"}
-        </p>
-        <div className="flex items-end justify-between">
-          <h1 className="font-display text-2xl font-extrabold">
-            {order.amount} {order.asset}
-          </h1>
-          <div className="text-right">
-            <p className="font-display text-xl font-extrabold">{formatNgn(order.fiatAmount)}</p>
-            <p className="text-xs text-white/60">rate {formatNgn(order.rate)}</p>
-          </div>
-        </div>
-        <span
-          className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-bold text-white ${
-            accent === "emerald" ? "bg-emerald-500" : "bg-rose-500"
-          }`}
-        >
-          {traderIsBuying ? "Buy order" : "Sell order"} · #{order.id.slice(0, 8)}
-        </span>
+      <div className={topBarClass}>
+        <button type="button" onClick={() => router.back()} aria-label="Back" className="text-maroon-950">
+          <ArrowLeft size={20} />
+        </button>
+        <span className="text-sm font-bold text-maroon-950">Order #{order.id.slice(0, 8)}</span>
+        {["awaiting_payment", "payment_marked"].includes(order.status) ? (
+          <CountdownTimer deadline={order.paymentDeadline} />
+        ) : (
+          <span className="w-5" />
+        )}
       </div>
 
-      <div className={heroSheetClass}>
+      <div className={pageClass}>
         <div className="flex flex-col gap-4">
-          <div className="rounded-2xl border border-cream-300 bg-white p-4">
-            <OrderStatusStepper status={order.status} />
+          <div className={flatBoxClass}>
+            <div className="flex items-center justify-between">
+              <span
+                className={`rounded-full px-2.5 py-1 text-xs font-bold text-white ${
+                  accent === "emerald" ? "bg-emerald-600" : "bg-rose-600"
+                }`}
+              >
+                {traderIsBuying ? "Buy order" : "Sell order"}
+              </span>
+              <span className="text-xs text-maroon-950/40">rate {formatNgn(order.rate)}</span>
+            </div>
+            <div className="mt-2 flex items-end justify-between">
+              <h1 className="font-display text-2xl font-extrabold text-maroon-950">
+                {order.amount} {order.asset}
+              </h1>
+              <p className="font-display text-xl font-extrabold text-maroon-950">{formatNgn(order.fiatAmount)}</p>
+            </div>
           </div>
+
+          <OrderStatusStepper status={order.status} />
 
           <div className="grid grid-cols-2 gap-3">
             <StatBox label="Network" value={order.payoutChain || order.side} />
@@ -199,7 +185,7 @@ export default function TradeRoomPage() {
 
 function StatBox({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-cream-300 bg-white px-3.5 py-2.5">
+    <div className="rounded-xl bg-cream-200/60 px-3.5 py-2.5">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-maroon-950/40">{label}</p>
       <p className="mt-0.5 truncate text-sm font-bold text-maroon-950">{value}</p>
     </div>
@@ -216,7 +202,7 @@ function ActionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`${cardClass} border-gold-300/60 bg-gold-50`}>
+    <div className="rounded-xl bg-gold-50 p-4">
       <p className="font-bold text-maroon-950">{title}</p>
       <p className="mt-1 text-sm text-maroon-950/60">{description}</p>
       <div className="mt-3">{children}</div>

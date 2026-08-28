@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogIn } from "lucide-react";
 import AuthShell from "@/components/auth/AuthShell";
 import { useSession } from "@/lib/session-context";
 import { ApiError } from "@/lib/api";
-import { inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
+import { inputClass, primaryButtonClass } from "@/lib/ui";
 
 export default function LoginPage() {
   const { login } = useSession();
@@ -31,42 +29,35 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthShell
-      title="Welcome back"
-      subtitle="Log in to trade with Thiago Exchange."
-      footer={
-        <>
-          New here?{" "}
-          <Link href="/signup" className="font-bold text-maroon-700 underline">
-            Create an account
-          </Link>
-        </>
-      }
-    >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="email" className={labelClass}>
-            Email
-          </label>
-          <input id="email" name="email" type="email" required autoComplete="email" className={inputClass} />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="password" className={labelClass}>
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            autoComplete="current-password"
-            className={inputClass}
-          />
-        </div>
+    <AuthShell title="Log in" switchHref="/signup" switchLabel="Sign up" footer="Trade crypto with Thiago Exchange">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <label className="sr-only" htmlFor="email">
+          Email
+        </label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          placeholder="Email"
+          className={inputClass}
+        />
+        <label className="sr-only" htmlFor="password">
+          Password
+        </label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          required
+          autoComplete="current-password"
+          placeholder="Password"
+          className={inputClass}
+        />
         {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
-        <button type="submit" disabled={submitting} className={`${primaryButtonClass} mt-2`}>
-          <LogIn size={18} />
-          {submitting ? "Logging in…" : "Log in"}
+        <button type="submit" disabled={submitting} className={`${primaryButtonClass} mt-3`}>
+          {submitting ? "Logging in…" : "Next"}
         </button>
       </form>
     </AuthShell>

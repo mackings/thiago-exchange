@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { UserPlus } from "lucide-react";
 import AuthShell from "@/components/auth/AuthShell";
 import { useSession } from "@/lib/session-context";
 import { ApiError } from "@/lib/api";
-import { inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
+import { inputClass, primaryButtonClass } from "@/lib/ui";
 
 export default function SignupPage() {
   const { register } = useSession();
@@ -41,54 +39,23 @@ export default function SignupPage() {
   }
 
   return (
-    <AuthShell
-      title="Create your account"
-      subtitle="Sign up to start trading with Thiago Exchange."
-      footer={
-        <>
-          Already have an account?{" "}
-          <Link href="/login" className="font-bold text-maroon-700 underline">
-            Log in
-          </Link>
-        </>
-      }
-    >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="fullName" className={labelClass}>
-            Full name
-          </label>
-          <input id="fullName" name="fullName" type="text" required autoComplete="name" className={inputClass} />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="email" className={labelClass}>
-            Email
-          </label>
-          <input id="email" name="email" type="email" required autoComplete="email" className={inputClass} />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="phone" className={labelClass}>
-            Phone (optional)
-          </label>
-          <input id="phone" name="phone" type="tel" autoComplete="tel" className={inputClass} />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="password" className={labelClass}>
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            minLength={8}
-            autoComplete="new-password"
-            className={inputClass}
-          />
-        </div>
+    <AuthShell title="Sign up" switchHref="/login" switchLabel="Log in" footer="Trade crypto with Thiago Exchange">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <input id="fullName" name="fullName" type="text" required autoComplete="name" placeholder="Full name" className={inputClass} />
+        <input id="email" name="email" type="email" required autoComplete="email" placeholder="Email" className={inputClass} />
+        <input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="Phone (optional)" className={inputClass} />
+        <input
+          id="password"
+          name="password"
+          type="password"
+          required
+          minLength={8}
+          autoComplete="new-password"
+          placeholder="Password (min. 8 characters)"
+          className={inputClass}
+        />
         {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
-        <button type="submit" disabled={submitting} className={`${primaryButtonClass} mt-2`}>
-          <UserPlus size={18} />
+        <button type="submit" disabled={submitting} className={`${primaryButtonClass} mt-3`}>
           {submitting ? "Creating account…" : "Create account"}
         </button>
       </form>

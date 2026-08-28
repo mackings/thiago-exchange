@@ -5,7 +5,7 @@ import Link from "next/link";
 import { api, type OrderDTO } from "@/lib/api";
 import { coins } from "@/lib/coins";
 import { formatNgn } from "@/lib/format";
-import { heroPanelClass, heroSheetClass } from "@/lib/ui";
+import { pageClass, topBarClass } from "@/lib/ui";
 import { Skeleton } from "@/components/app/Skeleton";
 
 const statusLabels: Record<OrderDTO["status"], string> = {
@@ -45,20 +45,19 @@ export default function OrdersPage() {
 
   return (
     <div>
-      <div className={heroPanelClass}>
-        <p className="text-xs font-bold uppercase tracking-wide text-white/50">Your activity</p>
-        <h1 className="font-display text-2xl font-extrabold">My Orders</h1>
-        <p className="mt-1 text-sm text-white/60">
-          {orders.length} total · {openCount} in progress
-        </p>
+      <div className={topBarClass}>
+        <h1 className="font-display text-xl font-extrabold text-maroon-950">My Orders</h1>
+        <span className="text-xs font-semibold text-maroon-950/40">
+          {orders.length} total · {openCount} active
+        </span>
       </div>
 
-      <div className={heroSheetClass}>
-        <div className="flex flex-col gap-3">
+      <div className={pageClass}>
+        <div className="flex flex-col divide-y divide-cream-200">
           {loading && (
             <>
               {[0, 1, 2].map((i) => (
-                <div key={i} className="flex items-center justify-between rounded-2xl border border-cream-300 bg-white p-4">
+                <div key={i} className="flex items-center justify-between py-4">
                   <div className="flex items-center gap-3">
                     <Skeleton className="h-10 w-10 rounded-full" />
                     <div className="flex flex-col gap-2">
@@ -72,7 +71,7 @@ export default function OrdersPage() {
             </>
           )}
           {!loading && orders.length === 0 && (
-            <p className="rounded-2xl border border-cream-300 bg-white p-6 text-center text-sm text-maroon-950/50">
+            <p className="rounded-xl bg-cream-200/60 p-6 text-center text-sm text-maroon-950/50">
               No orders yet —{" "}
               <Link href="/market" className="font-bold text-maroon-700 underline">
                 browse the market
@@ -83,11 +82,7 @@ export default function OrdersPage() {
           {orders.map((o) => {
             const coin = coins.find((c) => c.symbol === o.asset);
             return (
-              <Link
-                key={o.id}
-                href={`/trade/${o.id}`}
-                className="flex items-center justify-between rounded-2xl border border-cream-300 bg-white p-4 active:bg-cream-50"
-              >
+              <Link key={o.id} href={`/trade/${o.id}`} className="flex items-center justify-between py-4 active:opacity-70">
                 <div className="flex items-center gap-3">
                   <span
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cream-200"

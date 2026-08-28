@@ -6,7 +6,7 @@ import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { api, ApiError, type AdDTO } from "@/lib/api";
 import { coins } from "@/lib/coins";
 import { formatNgn } from "@/lib/format";
-import { heroPanelClass, heroSheetClass, inputClass, labelClass } from "@/lib/ui";
+import { flatBoxClass, inputClass, primaryButtonClass, topBarClass } from "@/lib/ui";
 
 function paymentChips(raw: string) {
   return raw
@@ -24,6 +24,8 @@ export default function AdDetailPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [amount, setAmount] = useState("");
+  const [payoutAddress, setPayoutAddress] = useState("");
+  const [payoutChain, setPayoutChain] = useState("");
 
   useEffect(() => {
     api
@@ -40,26 +42,24 @@ export default function AdDetailPage() {
   const traderIsBuying = ad.side === "sell";
   const accent = traderIsBuying ? "emerald" : "rose";
   const rate = ad.rateType === "fixed" ? ad.fixedRate : null;
-  const estimatedFiat = rate && amount ? Number(amount) * rate : null;
-  const chips = paymentChips(ad.paymentMethods || "Bank transfer");
+  const numericAmount = Number(amount);
+  const estimatedFiat = rate && numericAmount > 0 ? numericAmount * rate : null;
+
+  const withinLimits = estimatedFiat !== null && estimatedFiat >= ad.minLimit && estimatedFiat <= ad.maxLimit;
+  const canSubmit =
+    numericAmount > 0 && (rate === null || withinLimits) && (!traderIsBuying || (payoutAddress.trim() && payoutChain.trim()));
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!ad) return;
+    if (!ad || !canSubmit) return;
     setError("");
-    const data = new FormData(e.currentTarget);
-    const assetAmount = Number(data.get("amount"));
-    if (!assetAmount || assetAmount <= 0) {
-      setError("Enter a valid amount.");
-      return;
-    }
     setSubmitting(true);
     try {
       const order = await api.createOrder({
         adId: ad.id,
-        assetAmount,
-        payoutAddress: traderIsBuying ? String(data.get("payoutAddress") ?? "") : undefined,
-        payoutChain: traderIsBuying ? String(data.get("payoutChain") ?? "") : undefined,
+        assetAmount: numericAmount,
+        payoutAddress: traderIsBuying ? payoutAddress.trim() : undefined,
+        payoutChain: traderIsBuying ? payoutChain.trim() : undefined,
       });
       router.push(`/trade/${order.id}`);
     } catch (err) {
@@ -71,127 +71,121 @@ export default function AdDetailPage() {
 
   return (
     <div>
-      <div className={heroPanelClass}>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          aria-label="Back"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80"
-        >
-          <ArrowLeft size={18} />
+      <div className={topBarClass}>
+        <button type="button" onClick={() => router.back()} aria-label="Back" className="text-maroon-950">
+          <ArrowLeft size={20} />
         </button>
-
-        <p className="mt-5 text-xs font-bold uppercase tracking-wide text-white/50">
-          {traderIsBuying ? "You're buying" : "You're selling"}
-        </p>
-        <div className="mt-1 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15" style={{ color: coin?.color }}>
-              {coin ? <coin.icon size={20} /> : ad.asset}
-            </span>
-            <span className="font-display text-2xl font-extrabold">{ad.asset}</span>
-          </div>
-          <div className="text-right">
-            <p className="font-display text-2xl font-extrabold">{rate ? formatNgn(rate) : `±${ad.floatingMarginPct}%`}</p>
-            <p className="text-xs text-white/60">{rate ? `per ${ad.asset}` : "vs. Bybit rate"}</p>
-          </div>
-        </div>
-
-        <div className="mt-4 flex items-center gap-1.5 text-sm">
-          <span className="font-bold">Thiago Exchange</span>
-          <ShieldCheck size={14} className="text-gold-300" />
-          <span className="text-white/50">· Verified merchant</span>
-        </div>
+        <span className="text-sm font-bold text-maroon-950">{traderIsBuying ? "Buy" : "Sell"} {ad.asset}</span>
+        <span className="w-5" />
       </div>
 
-      <div className={heroSheetClass}>
-        <div className="rounded-2xl border border-cream-300 bg-white p-4">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-maroon-950/50">Limits</span>
-            <span className="font-semibold text-maroon-950">
-              {formatNgn(ad.minLimit)} – {formatNgn(ad.maxLimit)}
+      <div className="px-4">
+        <div className="flex items-center justify-between py-2">
+          <span className="text-sm text-maroon-950/50">Price</span>
+          <div className="flex items-center gap-2">
+            <span className={`font-display text-xl font-extrabold ${accent === "emerald" ? "text-emerald-600" : "text-rose-600"}`}>
+              {rate ? formatNgn(rate) : `Bybit ± ${ad.floatingMarginPct}%`}
             </span>
+            {!rate && (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">LIVE</span>
+            )}
           </div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {chips.map((c) => (
-              <span key={c} className="rounded-full bg-cream-200 px-2.5 py-1 text-[11px] font-semibold text-maroon-950/60">
-                {c}
-              </span>
-            ))}
-          </div>
-          {ad.terms && <p className="mt-3 text-xs text-maroon-950/50">{ad.terms}</p>}
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4 rounded-2xl border border-cream-300 bg-white p-4">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="amount" className={labelClass}>
-              Amount ({ad.asset})
-            </label>
-            <input
-              id="amount"
-              name="amount"
-              type="number"
-              step="any"
-              min={0}
-              required
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className={inputClass}
-              inputMode="decimal"
-            />
+        {!rate && (
+          <div className="mb-3 rounded-xl bg-gold-50 px-3.5 py-2.5 text-xs text-gold-800">
+            This price tracks Bybit's live rate with a {ad.floatingMarginPct}% margin, and is finalized the moment you
+            open the order.
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <div className={flatBoxClass}>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-maroon-950/50">Amount</span>
+              <span className="text-xs text-maroon-950/40">
+                Limit {formatNgn(ad.minLimit)}–{formatNgn(ad.maxLimit)}
+              </span>
+            </div>
+            <div className="mt-1 flex items-center justify-between gap-2">
+              <input
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                type="number"
+                step="any"
+                min={0}
+                inputMode="decimal"
+                placeholder="0.00"
+                required
+                className="w-full bg-transparent font-display text-2xl font-extrabold text-maroon-950 outline-none placeholder:text-maroon-950/25"
+              />
+              <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-bold text-maroon-950">
+                {coin && <coin.icon size={14} style={{ color: coin.color }} />}
+                {ad.asset}
+              </span>
+            </div>
           </div>
 
-          {estimatedFiat !== null && (
-            <div className="flex items-center justify-between rounded-xl bg-cream-100 px-4 py-3">
-              <span className="text-sm text-maroon-950/60">{traderIsBuying ? "You pay" : "You receive"}</span>
-              <span className="font-display text-lg font-extrabold text-maroon-950">{formatNgn(estimatedFiat)}</span>
+          <div className={flatBoxClass}>
+            <span className="text-xs font-semibold text-maroon-950/50">{traderIsBuying ? "I will pay" : "I will receive"}</span>
+            <div className="mt-1 flex items-center justify-between gap-2">
+              <span className="font-display text-2xl font-extrabold text-maroon-950">
+                {estimatedFiat !== null ? estimatedFiat.toLocaleString() : "0.00"}
+              </span>
+              <span className="shrink-0 rounded-full bg-white px-3 py-1.5 text-sm font-bold text-maroon-950">NGN</span>
             </div>
+          </div>
+
+          {estimatedFiat !== null && !withinLimits && (
+            <p className="text-xs font-semibold text-rose-600">
+              Amount must be between {formatNgn(ad.minLimit)} and {formatNgn(ad.maxLimit)}.
+            </p>
           )}
 
           {traderIsBuying && (
             <>
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="payoutAddress" className={labelClass}>
-                  Your {ad.asset} wallet address
-                </label>
-                <input id="payoutAddress" name="payoutAddress" type="text" required className={inputClass} />
-                <p className="text-xs text-maroon-950/50">
-                  This is where we&apos;ll send your {ad.asset} once payment is confirmed.
-                </p>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="payoutChain" className={labelClass}>
-                  Network / chain
-                </label>
-                <input
-                  id="payoutChain"
-                  name="payoutChain"
-                  type="text"
-                  required
-                  placeholder="e.g. TRC20, ERC20, BTC"
-                  className={inputClass}
-                />
-              </div>
+              <input
+                value={payoutAddress}
+                onChange={(e) => setPayoutAddress(e.target.value)}
+                type="text"
+                required
+                placeholder={`Your ${ad.asset} wallet address`}
+                className={inputClass}
+              />
+              <input
+                value={payoutChain}
+                onChange={(e) => setPayoutChain(e.target.value)}
+                type="text"
+                required
+                placeholder="Network / chain (e.g. TRC20, ERC20, BTC)"
+                className={inputClass}
+              />
             </>
           )}
 
-          {!traderIsBuying && (
-            <p className="rounded-lg bg-gold-50 px-4 py-3 text-sm text-maroon-950/70">
-              After you open this order we&apos;ll show you the deposit address to send your {ad.asset} to.
-            </p>
-          )}
+          <div className="mt-1 flex items-center justify-between rounded-xl bg-cream-100 px-3.5 py-3">
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-maroon-700 text-xs font-bold text-white">
+                TE
+              </span>
+              <span className="text-sm font-bold text-maroon-950">Thiago Exchange</span>
+            </div>
+            <div className="flex items-center gap-2 text-emerald-600">
+              <ShieldCheck size={14} />
+              <span className="text-xs font-semibold">Verified</span>
+            </div>
+          </div>
 
           {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className={`rounded-full py-3.5 text-center font-bold text-white transition-colors disabled:opacity-50 ${
-              accent === "emerald" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"
-            }`}
-          >
+          <button type="submit" disabled={submitting || !canSubmit} className={`${primaryButtonClass} mt-2`}>
             {submitting ? "Opening order…" : `${traderIsBuying ? "Buy" : "Sell"} ${ad.asset}`}
           </button>
+
+          <p className="flex items-center justify-center gap-1.5 pb-6 pt-1 text-xs text-maroon-950/40">
+            <ShieldCheck size={13} />
+            Escrow-protected trade
+          </p>
         </form>
       </div>
     </div>

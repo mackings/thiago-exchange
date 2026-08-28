@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, ApiError, type AdDTO, type DisputeDTO, type KYCDTO } from "@/lib/api";
 import { useSession } from "@/lib/session-context";
-import { cardClass, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
+import {
+  cardClass,
+  heroPanelClass,
+  heroSheetClass,
+  inputClass,
+  labelClass,
+  primaryButtonClass,
+  secondaryButtonClass,
+} from "@/lib/ui";
 import { formatNgn } from "@/lib/format";
 
 type Tab = "ads" | "kyc" | "disputes" | "treasury";
@@ -29,25 +37,30 @@ export default function AdminPage() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-extrabold text-maroon-950">Admin</h1>
-      <div className="mt-4 flex gap-1 overflow-x-auto rounded-full border border-cream-300 bg-white p-1">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
-              tab === t.key ? "bg-maroon-700 text-cream-50" : "text-maroon-950/60"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div className={heroPanelClass}>
+        <p className="text-xs font-bold uppercase tracking-wide text-white/50">Merchant console</p>
+        <h1 className="font-display text-2xl font-extrabold">Admin</h1>
       </div>
-      <div className="mt-5">
-        {tab === "ads" && <AdsTab />}
-        {tab === "kyc" && <KycTab />}
-        {tab === "disputes" && <DisputesTab />}
-        {tab === "treasury" && <TreasuryTab />}
+      <div className={heroSheetClass}>
+        <div className="flex gap-1 overflow-x-auto rounded-full border border-cream-300 bg-white p-1">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+                tab === t.key ? "bg-maroon-700 text-cream-50" : "text-maroon-950/60"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="mt-5">
+          {tab === "ads" && <AdsTab />}
+          {tab === "kyc" && <KycTab />}
+          {tab === "disputes" && <DisputesTab />}
+          {tab === "treasury" && <TreasuryTab />}
+        </div>
       </div>
     </div>
   );

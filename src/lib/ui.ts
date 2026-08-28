@@ -12,3 +12,10 @@ export const secondaryButtonClass =
   "inline-flex items-center justify-center gap-2 rounded-full border-2 border-maroon-600 px-6 py-3 font-bold text-maroon-700 transition hover:bg-maroon-600 hover:text-cream-50 disabled:cursor-not-allowed disabled:opacity-50";
 
 export const cardClass = "rounded-2xl border border-cream-300 bg-white p-6 shadow-sm";
+
+// The reference wallet-app pattern: a colored hero panel with rounded
+// bottom corners, and a white content sheet pulled up over it via negative
+// margin. Used consistently across market/trade/orders/profile so the app
+// reads as one system.
+export const heroPanelClass = "bg-hero-pattern rounded-b-[2rem] bg-maroon-800 px-5 pb-9 pt-6 text-white";
+export const heroSheetClass = "relative z-10 -mt-5 rounded-t-3xl bg-cream-100 px-4 pb-6 pt-5";

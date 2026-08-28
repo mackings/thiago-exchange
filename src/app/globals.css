@@ -69,4 +69,12 @@ body {
       linear-gradient(90deg, rgba(253, 246, 233, 0.05) 1px, transparent 1px);
     background-size: 32px 32px;
   }
+
+  /* Diamond/chevron lattice used on app hero panels, echoing the reference
+     wallet-app headers — subtle gold lines on the dark maroon fill. */
+  .bg-hero-pattern {
+    background-image:
+      repeating-linear-gradient(45deg, rgba(240, 182, 84, 0.07) 0, rgba(240, 182, 84, 0.07) 1px, transparent 1px, transparent 34px),
+      repeating-linear-gradient(-45deg, rgba(240, 182, 84, 0.07) 0, rgba(240, 182, 84, 0.07) 1px, transparent 1px, transparent 34px);
+  }
 }

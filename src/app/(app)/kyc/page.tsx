@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { ShieldCheck, ShieldAlert, ShieldQuestion } from "lucide-react";
 import { api, ApiError, type KYCDTO } from "@/lib/api";
 import { useSession } from "@/lib/session-context";
-import { cardClass, inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
+import { cardClass, heroPanelClass, heroSheetClass, inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
 
 const statusMeta: Record<KYCDTO["status"], { label: string; className: string; icon: typeof ShieldCheck }> = {
   unverified: { label: "Not submitted", className: "bg-cream-200 text-maroon-950/60", icon: ShieldQuestion },
@@ -58,26 +58,44 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading) return <p className="text-sm text-maroon-950/50">Loading profile…</p>;
+  if (loading)
+    return (
+      <div>
+        <div className={heroPanelClass}>
+          <h1 className="font-display text-2xl font-extrabold">Profile</h1>
+        </div>
+        <div className={heroSheetClass}>
+          <p className="text-sm text-maroon-950/50">Loading profile…</p>
+        </div>
+      </div>
+    );
 
   return (
-    <div className="flex flex-col gap-5">
-      <h1 className="font-display text-2xl font-extrabold text-maroon-950">Profile</h1>
-
-      <div className={cardClass}>
-        <p className="font-bold text-maroon-950">{user?.fullName}</p>
-        <p className="text-sm text-maroon-950/60">{user?.email}</p>
-        <div className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${meta.className}`}>
+    <div>
+      <div className={heroPanelClass}>
+        <div className="flex items-center gap-3">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 font-display text-lg font-bold">
+            {user?.fullName?.[0]?.toUpperCase() ?? "U"}
+          </span>
+          <div>
+            <p className="font-display text-lg font-extrabold">{user?.fullName}</p>
+            <p className="text-sm text-white/60">{user?.email}</p>
+          </div>
+        </div>
+        <div className={`mt-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${meta.className}`}>
           <Icon size={14} />
           Verification: {meta.label}
         </div>
-        {kyc?.reviewNote && status === "rejected" && (
-          <p className="mt-2 text-sm text-red-600">{kyc.reviewNote}</p>
-        )}
       </div>
 
-      {canSubmit && (
-        <form onSubmit={handleSubmit} className={`${cardClass} flex flex-col gap-4`}>
+      <div className={heroSheetClass}>
+        <div className="flex flex-col gap-4">
+          {kyc?.reviewNote && status === "rejected" && (
+            <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">{kyc.reviewNote}</p>
+          )}
+
+          {canSubmit && (
+            <form onSubmit={handleSubmit} className={`${cardClass} flex flex-col gap-4`}>
           <p className="font-bold text-maroon-950">Verify your identity</p>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="fullName" className={labelClass}>
@@ -114,12 +132,14 @@ export default function ProfilePage() {
               className="block text-sm text-maroon-950/70 file:mr-3 file:rounded-full file:border-0 file:bg-maroon-700 file:px-4 file:py-2 file:text-sm file:font-bold file:text-cream-50"
             />
           </div>
-          {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
-          <button type="submit" disabled={submitting} className={primaryButtonClass}>
-            {submitting ? "Submitting…" : "Submit for verification"}
-          </button>
-        </form>
-      )}
+              {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
+              <button type="submit" disabled={submitting} className={primaryButtonClass}>
+                {submitting ? "Submitting…" : "Submit for verification"}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,19 +1,27 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { AlertTriangle, Copy } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { AlertTriangle, ArrowLeft, Copy } from "lucide-react";
 import { api, ApiError, type OrderDTO } from "@/lib/api";
 import { useSession } from "@/lib/session-context";
 import { useTradeSocket } from "@/hooks/useTradeSocket";
 import OrderStatusStepper from "@/components/app/OrderStatusStepper";
 import TradeChat from "@/components/app/TradeChat";
 import CountdownTimer from "@/components/app/CountdownTimer";
-import { cardClass, inputClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
+import {
+  cardClass,
+  heroPanelClass,
+  heroSheetClass,
+  inputClass,
+  primaryButtonClass,
+  secondaryButtonClass,
+} from "@/lib/ui";
 import { formatNgn } from "@/lib/format";
 
 export default function TradeRoomPage() {
   const { orderId } = useParams<{ orderId: string }>();
+  const router = useRouter();
   const { user } = useSession();
   const [order, setOrder] = useState<OrderDTO | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,99 +75,117 @@ export default function TradeRoomPage() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="overflow-hidden rounded-2xl border border-cream-300 bg-white">
-        <div className={`flex items-center justify-between px-5 py-4 ${accent === "emerald" ? "bg-emerald-600" : "bg-rose-600"}`}>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-white/70">
-              {traderIsBuying ? "Buying" : "Selling"}
-            </p>
-            <h1 className="font-display text-xl font-extrabold text-white">
-              {order.amount} {order.asset}
-            </h1>
-          </div>
-          <div className="text-right">
-            <p className="font-display text-lg font-extrabold text-white">{formatNgn(order.fiatAmount)}</p>
-            <p className="text-xs text-white/70">rate {formatNgn(order.rate)}</p>
-          </div>
-        </div>
-        <div className="flex items-center justify-between px-5 py-3">
-          <p className="text-xs text-maroon-950/50">Order #{order.id.slice(0, 8)}</p>
+    <div>
+      <div className={heroPanelClass}>
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            aria-label="Back"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80"
+          >
+            <ArrowLeft size={18} />
+          </button>
           {["awaiting_payment", "payment_marked"].includes(order.status) && (
             <CountdownTimer deadline={order.paymentDeadline} />
           )}
         </div>
-        <div className="border-t border-cream-200 px-5 py-4">
-          <OrderStatusStepper status={order.status} />
+
+        <p className="mt-5 text-xs font-bold uppercase tracking-wide text-white/50">
+          {traderIsBuying ? "Buying" : "Selling"}
+        </p>
+        <div className="flex items-end justify-between">
+          <h1 className="font-display text-2xl font-extrabold">
+            {order.amount} {order.asset}
+          </h1>
+          <div className="text-right">
+            <p className="font-display text-xl font-extrabold">{formatNgn(order.fiatAmount)}</p>
+            <p className="text-xs text-white/60">rate {formatNgn(order.rate)}</p>
+          </div>
         </div>
+        <span
+          className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-bold text-white ${
+            accent === "emerald" ? "bg-emerald-500" : "bg-rose-500"
+          }`}
+        >
+          {traderIsBuying ? "Buy order" : "Sell order"} · #{order.id.slice(0, 8)}
+        </span>
       </div>
 
-      {order.side === "sell" && isBuyer && order.status === "awaiting_payment" && (
-        <MarkPaidPanel onSubmit={(url) => runAction(() => api.markPaid(order.id, url))} busy={busy} />
-      )}
+      <div className={heroSheetClass}>
+        <div className="flex flex-col gap-4">
+          <div className="rounded-2xl border border-cream-300 bg-white p-4">
+            <OrderStatusStepper status={order.status} />
+          </div>
 
-      {order.side === "buy" && isSeller && order.status === "awaiting_payment" && (
-        <DepositPanel
-          orderId={order.id}
-          onSubmit={(txId) => runAction(() => api.submitDeposit(order.id, txId))}
-          busy={busy}
-        />
-      )}
+          {order.side === "sell" && isBuyer && order.status === "awaiting_payment" && (
+            <MarkPaidPanel onSubmit={(url) => runAction(() => api.markPaid(order.id, url))} busy={busy} />
+          )}
 
-      {order.side === "sell" && isAdmin && order.status === "payment_marked" && (
-        <ActionCard
-          title="Confirm payment received"
-          description="Check your bank account for the buyer's transfer before confirming."
-        >
-          <button
-            className={primaryButtonClass}
-            disabled={busy}
-            onClick={() => runAction(() => api.confirmPayment(order.id))}
-          >
-            Confirm payment received
-          </button>
-        </ActionCard>
-      )}
+          {order.side === "buy" && isSeller && order.status === "awaiting_payment" && (
+            <DepositPanel
+              orderId={order.id}
+              onSubmit={(txId) => runAction(() => api.submitDeposit(order.id, txId))}
+              busy={busy}
+            />
+          )}
 
-      {isAdmin && order.status === "payment_confirmed" && (
-        <ActionCard
-          title={order.side === "sell" ? "Release crypto to buyer" : "Confirm and credit inventory"}
-          description={
-            order.side === "sell"
-              ? "This sends the real Bybit withdrawal to the buyer's address. Make sure it's whitelisted on Bybit first."
-              : "Marks this as done and credits the verified deposit to Thiago's available balance. Remember to send the seller their NGN payout separately."
-          }
-        >
-          <button
-            className={primaryButtonClass}
-            disabled={busy}
-            onClick={() => runAction(() => api.adminReleaseOrder(order.id))}
-          >
-            {order.side === "sell" ? "Release crypto" : "Confirm & credit"}
-          </button>
-        </ActionCard>
-      )}
+          {order.side === "sell" && isAdmin && order.status === "payment_marked" && (
+            <ActionCard
+              title="Confirm payment received"
+              description="Check your bank account for the buyer's transfer before confirming."
+            >
+              <button
+                className={primaryButtonClass}
+                disabled={busy}
+                onClick={() => runAction(() => api.confirmPayment(order.id))}
+              >
+                Confirm payment received
+              </button>
+            </ActionCard>
+          )}
 
-      {(isBuyer || isSeller) && (order.status === "created" || order.status === "awaiting_payment") && (
-        <button
-          className={`${secondaryButtonClass} self-start`}
-          disabled={busy}
-          onClick={() => runAction(() => api.cancelOrder(order.id))}
-        >
-          Cancel order
-        </button>
-      )}
+          {isAdmin && order.status === "payment_confirmed" && (
+            <ActionCard
+              title={order.side === "sell" ? "Release crypto to buyer" : "Confirm and credit inventory"}
+              description={
+                order.side === "sell"
+                  ? "This sends the real Bybit withdrawal to the buyer's address. Make sure it's whitelisted on Bybit first."
+                  : "Marks this as done and credits the verified deposit to Thiago's available balance. Remember to send the seller their NGN payout separately."
+              }
+            >
+              <button
+                className={primaryButtonClass}
+                disabled={busy}
+                onClick={() => runAction(() => api.adminReleaseOrder(order.id))}
+              >
+                {order.side === "sell" ? "Release crypto" : "Confirm & credit"}
+              </button>
+            </ActionCard>
+          )}
 
-      {(isBuyer || isSeller) &&
-        ["awaiting_payment", "payment_marked", "payment_confirmed"].includes(order.status) && (
-          <DisputePanel
-            onSubmit={(reason) =>
-              runAction(() => api.raiseDispute(order.id, reason).then(() => api.getOrder(order.id)))
-            }
-          />
-        )}
+          {(isBuyer || isSeller) && (order.status === "created" || order.status === "awaiting_payment") && (
+            <button
+              className={`${secondaryButtonClass} self-start`}
+              disabled={busy}
+              onClick={() => runAction(() => api.cancelOrder(order.id))}
+            >
+              Cancel order
+            </button>
+          )}
 
-      <TradeChat messages={messages} currentUserId={user.id} connected={connected} onSend={send} />
+          {(isBuyer || isSeller) &&
+            ["awaiting_payment", "payment_marked", "payment_confirmed"].includes(order.status) && (
+              <DisputePanel
+                onSubmit={(reason) =>
+                  runAction(() => api.raiseDispute(order.id, reason).then(() => api.getOrder(order.id)))
+                }
+              />
+            )}
+
+          <TradeChat messages={messages} currentUserId={user.id} connected={connected} onSend={send} />
+        </div>
+      </div>
     </div>
   );
 }

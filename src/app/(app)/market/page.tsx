@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LogOut, ShieldCheck } from "lucide-react";
+import { Clock3, LogOut, ShieldCheck, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { api, type AdDTO } from "@/lib/api";
 import { coins } from "@/lib/coins";
 import { formatNgn } from "@/lib/format";
 import { useSession } from "@/lib/session-context";
 import { heroPanelClass, heroSheetClass } from "@/lib/ui";
+import LiveTicker from "@/components/app/LiveTicker";
+import { OfferRowSkeleton } from "@/components/app/Skeleton";
 
 type ViewMode = "buy" | "sell";
 
@@ -77,6 +79,19 @@ export default function MarketPage() {
           <ShieldCheck size={18} className="text-gold-300" />
         </div>
 
+        <LiveTicker />
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/70">
+            <Clock3 size={12} />
+            30 min payment window
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/70">
+            <Zap size={12} />
+            Fast release
+          </span>
+        </div>
+
         <div className="mt-5 grid grid-cols-2 gap-2">
           <button
             type="button"
@@ -100,7 +115,13 @@ export default function MarketPage() {
       </div>
 
       <div className={heroSheetClass}>
-        {loading && <p className="px-1 text-sm text-maroon-950/50">Loading offers…</p>}
+        {loading && (
+          <div className="divide-y divide-cream-200 overflow-hidden rounded-2xl border border-cream-300 bg-white">
+            <OfferRowSkeleton />
+            <OfferRowSkeleton />
+            <OfferRowSkeleton />
+          </div>
+        )}
         {error && <p className="px-1 text-sm font-semibold text-red-600">{error}</p>}
         {!loading && !error && ads.length === 0 && (
           <p className="rounded-2xl border border-cream-300 bg-white p-6 text-center text-sm text-maroon-950/50">

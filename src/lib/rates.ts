@@ -56,6 +56,12 @@ function buildRates(
   });
 }
 
+// Synchronous fallback table, for client components that need to seed
+// useLiveRates immediately (e.g. a ticker strip) without an async fetch.
+export function getFallbackRates(): CoinRate[] {
+  return buildRates(FALLBACK_USD);
+}
+
 export async function getRates(): Promise<{
   rates: CoinRate[];
   isLive: boolean;

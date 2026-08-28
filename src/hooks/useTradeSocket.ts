@@ -34,9 +34,9 @@ export function useTradeSocket(orderId: string, initialMessages: MessageDTO[]) {
     return () => socket.close();
   }, [orderId]);
 
-  function send(body: string) {
+  function send(body: string, attachmentUrl?: string) {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify({ body }));
+      socketRef.current.send(JSON.stringify({ body, attachmentUrl }));
     }
   }
 

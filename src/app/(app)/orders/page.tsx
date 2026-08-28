@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api, type OrderDTO } from "@/lib/api";
+import { coins } from "@/lib/coins";
 import { formatNgn } from "@/lib/format";
 import { heroPanelClass, heroSheetClass } from "@/lib/ui";
+import { Skeleton } from "@/components/app/Skeleton";
 
 const statusLabels: Record<OrderDTO["status"], string> = {
   created: "Created",
@@ -53,7 +55,22 @@ export default function OrdersPage() {
 
       <div className={heroSheetClass}>
         <div className="flex flex-col gap-3">
-          {loading && <p className="text-sm text-maroon-950/50">Loading orders…</p>}
+          {loading && (
+            <>
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="flex items-center justify-between rounded-2xl border border-cream-300 bg-white p-4">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="flex flex-col gap-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+              ))}
+            </>
+          )}
           {!loading && orders.length === 0 && (
             <p className="rounded-2xl border border-cream-300 bg-white p-6 text-center text-sm text-maroon-950/50">
               No orders yet —{" "}
@@ -63,23 +80,34 @@ export default function OrdersPage() {
               to get started.
             </p>
           )}
-          {orders.map((o) => (
-            <Link
-              key={o.id}
-              href={`/trade/${o.id}`}
-              className="flex items-center justify-between rounded-2xl border border-cream-300 bg-white p-4 active:bg-cream-50"
-            >
-              <div>
-                <p className="font-bold text-maroon-950">
-                  {o.amount} {o.asset} · {formatNgn(o.fiatAmount)}
-                </p>
-                <p className="text-xs text-maroon-950/50">{new Date(o.createdAt).toLocaleString()}</p>
-              </div>
-              <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusColor[o.status]}`}>
-                {statusLabels[o.status]}
-              </span>
-            </Link>
-          ))}
+          {orders.map((o) => {
+            const coin = coins.find((c) => c.symbol === o.asset);
+            return (
+              <Link
+                key={o.id}
+                href={`/trade/${o.id}`}
+                className="flex items-center justify-between rounded-2xl border border-cream-300 bg-white p-4 active:bg-cream-50"
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cream-200"
+                    style={{ color: coin?.color }}
+                  >
+                    {coin ? <coin.icon size={20} /> : o.asset}
+                  </span>
+                  <div>
+                    <p className="font-bold text-maroon-950">
+                      {o.amount} {o.asset} · {formatNgn(o.fiatAmount)}
+                    </p>
+                    <p className="text-xs text-maroon-950/50">{new Date(o.createdAt).toLocaleString()}</p>
+                  </div>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusColor[o.status]}`}>
+                  {statusLabels[o.status]}
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </div>

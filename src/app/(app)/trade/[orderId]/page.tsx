@@ -118,6 +118,13 @@ export default function TradeRoomPage() {
             <OrderStatusStepper status={order.status} />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <StatBox label="Network" value={order.payoutChain || order.side} />
+            <StatBox label="Rate" value={formatNgn(order.rate)} />
+            <StatBox label="Proof" value={order.paymentProofUrl || order.depositTxId ? "Submitted" : "Pending"} />
+            <StatBox label="Chat" value={`${messages.length} message${messages.length === 1 ? "" : "s"}`} />
+          </div>
+
           {order.side === "sell" && isBuyer && order.status === "awaiting_payment" && (
             <MarkPaidPanel onSubmit={(url) => runAction(() => api.markPaid(order.id, url))} busy={busy} />
           )}
@@ -186,6 +193,15 @@ export default function TradeRoomPage() {
           <TradeChat messages={messages} currentUserId={user.id} connected={connected} onSend={send} />
         </div>
       </div>
+    </div>
+  );
+}
+
+function StatBox({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-cream-300 bg-white px-3.5 py-2.5">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-maroon-950/40">{label}</p>
+      <p className="mt-0.5 truncate text-sm font-bold text-maroon-950">{value}</p>
     </div>
   );
 }

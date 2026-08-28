@@ -8,6 +8,7 @@ import { useSession } from "@/lib/session-context";
 import { useTradeSocket } from "@/hooks/useTradeSocket";
 import OrderStatusStepper from "@/components/app/OrderStatusStepper";
 import TradeChat from "@/components/app/TradeChat";
+import CountdownTimer from "@/components/app/CountdownTimer";
 import { cardClass, inputClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
 import { formatNgn } from "@/lib/format";
 
@@ -47,6 +48,10 @@ export default function TradeRoomPage() {
   const isBuyer = order.buyerId === user.id;
   const isSeller = order.sellerId === user.id;
   const isAdmin = user.role === "admin";
+  // order.side === "sell" means Thiago is selling, so the non-admin trader
+  // on this order is buying — mirrors the accent logic on the ad/market pages.
+  const traderIsBuying = order.side === "sell";
+  const accent = traderIsBuying ? "emerald" : "rose";
 
   async function runAction(fn: () => Promise<OrderDTO>) {
     setBusy(true);
@@ -63,19 +68,28 @@ export default function TradeRoomPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className={cardClass}>
-        <div className="flex items-center justify-between">
+      <div className="overflow-hidden rounded-2xl border border-cream-300 bg-white">
+        <div className={`flex items-center justify-between px-5 py-4 ${accent === "emerald" ? "bg-emerald-600" : "bg-rose-600"}`}>
           <div>
-            <h1 className="font-display text-xl font-extrabold text-maroon-950">
+            <p className="text-xs font-bold uppercase tracking-wide text-white/70">
+              {traderIsBuying ? "Buying" : "Selling"}
+            </p>
+            <h1 className="font-display text-xl font-extrabold text-white">
               {order.amount} {order.asset}
             </h1>
-            <p className="text-sm text-maroon-950/50">{formatNgn(order.fiatAmount)} · rate {formatNgn(order.rate)}</p>
           </div>
-          <p className="text-xs text-maroon-950/40">
-            Deadline {new Date(order.paymentDeadline).toLocaleTimeString()}
-          </p>
+          <div className="text-right">
+            <p className="font-display text-lg font-extrabold text-white">{formatNgn(order.fiatAmount)}</p>
+            <p className="text-xs text-white/70">rate {formatNgn(order.rate)}</p>
+          </div>
         </div>
-        <div className="mt-5">
+        <div className="flex items-center justify-between px-5 py-3">
+          <p className="text-xs text-maroon-950/50">Order #{order.id.slice(0, 8)}</p>
+          {["awaiting_payment", "payment_marked"].includes(order.status) && (
+            <CountdownTimer deadline={order.paymentDeadline} />
+          )}
+        </div>
+        <div className="border-t border-cream-200 px-5 py-4">
           <OrderStatusStepper status={order.status} />
         </div>
       </div>

@@ -2,11 +2,19 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { api, ApiError, type AdDTO } from "@/lib/api";
 import { coins } from "@/lib/coins";
 import { formatNgn } from "@/lib/format";
-import { cardClass, inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
+import { inputClass, labelClass } from "@/lib/ui";
+
+function paymentChips(raw: string) {
+  return raw
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => p.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()));
+}
 
 export default function AdDetailPage() {
   const { adId } = useParams<{ adId: string }>();
@@ -32,8 +40,10 @@ export default function AdDetailPage() {
   // ad.side === "sell" means Thiago is selling, so the trader here is buying
   // (and needs to tell us where to pay them out).
   const traderIsBuying = ad.side === "sell";
+  const accent = traderIsBuying ? "emerald" : "rose";
   const rate = ad.rateType === "fixed" ? ad.fixedRate : null;
   const estimatedFiat = rate && amount ? Number(amount) * rate : null;
+  const chips = paymentChips(ad.paymentMethods || "Bank transfer");
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -63,24 +73,34 @@ export default function AdDetailPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className={cardClass}>
-        <div className="flex items-center gap-3">
-          <span
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-cream-200"
-            style={{ color: coin?.color }}
-          >
-            {coin ? <coin.icon size={24} /> : ad.asset}
-          </span>
-          <div>
-            <h1 className="font-display text-xl font-extrabold text-maroon-950">
-              {traderIsBuying ? "Buy" : "Sell"} {ad.asset}
-            </h1>
-            <p className="text-sm text-maroon-950/50">
-              {rate ? `${formatNgn(rate)} per ${ad.asset}` : `Bybit rate ± ${ad.floatingMarginPct}%`}
-            </p>
+      <div className={`overflow-hidden rounded-2xl border ${accent === "emerald" ? "border-emerald-200" : "border-rose-200"} bg-white`}>
+        <div className={`px-5 py-4 ${accent === "emerald" ? "bg-emerald-600" : "bg-rose-600"}`}>
+          <p className="text-xs font-bold uppercase tracking-wide text-white/70">
+            {traderIsBuying ? "You're buying" : "You're selling"}
+          </p>
+          <div className="mt-1 flex items-end justify-between">
+            <div className="flex items-center gap-2">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white" style={{ color: coin?.color }}>
+                {coin ? <coin.icon size={18} /> : ad.asset}
+              </span>
+              <span className="font-display text-xl font-extrabold text-white">{ad.asset}</span>
+            </div>
+            <div className="text-right">
+              <p className="font-display text-2xl font-extrabold text-white">
+                {rate ? formatNgn(rate) : `±${ad.floatingMarginPct}%`}
+              </p>
+              <p className="text-xs text-white/70">{rate ? `per ${ad.asset}` : "vs. Bybit rate"}</p>
+            </div>
           </div>
         </div>
-        <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-cream-200 pt-4 text-sm">
+
+        <div className="flex items-center gap-2 border-b border-cream-200 px-5 py-3">
+          <p className="text-sm font-bold text-maroon-950">Thiago Exchange</p>
+          <ShieldCheck size={14} className="text-emerald-600" />
+          <span className="text-xs text-maroon-950/40">· Verified merchant</span>
+        </div>
+
+        <dl className="grid grid-cols-2 gap-3 px-5 py-4 text-sm">
           <div>
             <dt className="text-maroon-950/50">Limits</dt>
             <dd className="font-semibold text-maroon-950">
@@ -89,7 +109,13 @@ export default function AdDetailPage() {
           </div>
           <div>
             <dt className="text-maroon-950/50">Payment method</dt>
-            <dd className="font-semibold text-maroon-950">{ad.paymentMethods || "Bank transfer"}</dd>
+            <dd className="mt-1 flex flex-wrap gap-1">
+              {chips.map((c) => (
+                <span key={c} className="rounded-full bg-cream-200 px-2 py-0.5 text-[11px] font-semibold text-maroon-950/60">
+                  {c}
+                </span>
+              ))}
+            </dd>
           </div>
           {ad.terms && (
             <div className="col-span-2">
@@ -100,7 +126,7 @@ export default function AdDetailPage() {
         </dl>
       </div>
 
-      <form onSubmit={handleSubmit} className={`${cardClass} flex flex-col gap-4`}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl border border-cream-300 bg-white p-5">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="amount" className={labelClass}>
             Amount ({ad.asset})
@@ -116,10 +142,14 @@ export default function AdDetailPage() {
             onChange={(e) => setAmount(e.target.value)}
             className={inputClass}
           />
-          {estimatedFiat !== null && (
-            <p className="text-xs text-maroon-950/50">≈ {formatNgn(estimatedFiat)}</p>
-          )}
         </div>
+
+        {estimatedFiat !== null && (
+          <div className="flex items-center justify-between rounded-xl bg-cream-100 px-4 py-3">
+            <span className="text-sm text-maroon-950/60">{traderIsBuying ? "You pay" : "You receive"}</span>
+            <span className="font-display text-lg font-extrabold text-maroon-950">{formatNgn(estimatedFiat)}</span>
+          </div>
+        )}
 
         {traderIsBuying && (
           <>
@@ -156,9 +186,14 @@ export default function AdDetailPage() {
 
         {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
 
-        <button type="submit" disabled={submitting} className={primaryButtonClass}>
+        <button
+          type="submit"
+          disabled={submitting}
+          className={`rounded-full py-3.5 text-center font-bold text-white transition-colors disabled:opacity-50 ${
+            accent === "emerald" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"
+          }`}
+        >
           {submitting ? "Opening order…" : `${traderIsBuying ? "Buy" : "Sell"} ${ad.asset}`}
-          <ArrowRight size={18} />
         </button>
       </form>
     </div>

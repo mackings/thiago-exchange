@@ -6,8 +6,8 @@ import { api, ApiError, setAccessToken, tryRefresh, type UserDTO } from "@/lib/a
 type SessionState = {
   user: UserDTO | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (input: { email: string; password: string; fullName: string; phone?: string }) => Promise<void>;
+  login: (email: string, password: string) => Promise<UserDTO>;
+  register: (input: { email: string; password: string; fullName: string; phone?: string }) => Promise<UserDTO>;
   logout: () => Promise<void>;
   refreshUser: (user: UserDTO) => void;
 };
@@ -40,6 +40,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     const res = await api.login({ email, password });
     setAccessToken(res.accessToken);
     setUser(res.user);
+    return res.user;
   }, []);
 
   const register = useCallback(
@@ -47,6 +48,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       const res = await api.register(input);
       setAccessToken(res.accessToken);
       setUser(res.user);
+      return res.user;
     },
     []
   );

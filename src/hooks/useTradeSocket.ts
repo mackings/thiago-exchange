@@ -3,17 +3,28 @@
 import { useEffect, useRef, useState } from "react";
 import { getAccessToken, wsBase, type MessageDTO } from "@/lib/api";
 
-export function useTradeSocket(orderId: string, initialMessages: MessageDTO[]) {
+export function useTradeSocket(orderId: string, initialMessages: MessageDTO[], ready: boolean = true) {
   const [messages, setMessages] = useState<MessageDTO[]>(initialMessages);
   const [connected, setConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
+    // `initialMessages` starts empty and is only populated once the page's
+    // own history fetch resolves — but this hook mounts unconditionally on
+    // the caller's very first render (React hook rules), so it captures that
+    // still-empty array. Depending on `initialMessages` here (not just
+    // `orderId`) means once the real history actually arrives, it's applied
+    // instead of being silently dropped — which is why a page refresh used
+    // to show an empty chat even though the messages were safely persisted.
     setMessages(initialMessages);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderId]);
+  }, [orderId, initialMessages]);
 
   useEffect(() => {
+    if (!orderId || !ready) return;
+    // The access token loads asynchronously (session refresh on mount, or
+    // login) — this effect depends on `ready` too, so once the caller signals
+    // the token is actually available, connection is retried rather than
+    // failing silently forever from a stale first-render check.
     const token = getAccessToken();
     if (!token) return;
 
@@ -32,7 +43,7 @@ export function useTradeSocket(orderId: string, initialMessages: MessageDTO[]) {
     };
 
     return () => socket.close();
-  }, [orderId]);
+  }, [orderId, ready]);
 
   function send(body: string, attachmentUrl?: string) {
     if (socketRef.current?.readyState === WebSocket.OPEN) {

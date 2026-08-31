@@ -37,7 +37,7 @@ export default function Hero() {
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Link
-              href="/contact"
+              href="/login"
               className="group inline-flex items-center gap-2 rounded-full bg-maroon-700 px-6 py-3 font-bold text-cream-50 shadow-sm transition-colors hover:bg-maroon-800"
             >
               Start Trading

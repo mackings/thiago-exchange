@@ -1,4 +1,18 @@
+import { formatNgn } from "@/lib/format";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+
+export const money = formatNgn;
+
+// Uploaded file URLs (KYC documents, chat attachments, payment proofs) come
+// back from the backend as paths relative to the API server (e.g.
+// "/uploads/xyz.png"), not the frontend origin — resolving them bare in a
+// browser hits the Next.js app instead of the API and 404s. Anywhere one of
+// these is rendered as an href or img src, run it through this first.
+export function fileUrl(path: string) {
+  if (!path || /^https?:\/\//.test(path)) return path;
+  return `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
+}
 
 export class ApiError extends Error {
   status: number;
@@ -81,6 +95,11 @@ export type UserDTO = {
   fullName: string;
   role: "user" | "admin";
   kycStatus: "unverified" | "pending" | "verified" | "rejected";
+  disabled: boolean;
+  createdAt: string;
+  bankName?: string;
+  bankAccountNumber?: string;
+  bankAccountName?: string;
 };
 
 export type AdDTO = {
@@ -106,6 +125,8 @@ export type OrderDTO = {
   side: "buy" | "sell";
   buyerId: string;
   sellerId: string;
+  buyerName?: string;
+  sellerName?: string;
   asset: string;
   fiat: string;
   amount: number;
@@ -170,6 +191,25 @@ export type DisputeDTO = {
   resolution?: string;
 };
 
+export type WhitelistedAddressDTO = {
+  id: string;
+  address: string;
+  chain: string;
+  asset: string;
+  addedByAdminId: string;
+  createdAt: string;
+};
+
+export type DepositAddressDTO = {
+  id: string;
+  asset: string;
+  chain: string;
+  address: string;
+  tag?: string;
+  addedByAdminId: string;
+  updatedAt: string;
+};
+
 export const api = {
   // auth
   register: (input: { email: string; password: string; fullName: string; phone?: string }) =>
@@ -178,6 +218,12 @@ export const api = {
     request<{ user: UserDTO; accessToken: string }>("/api/v1/auth/login", { method: "POST", body: input }),
   logout: () => request<void>("/api/v1/auth/logout", { method: "POST" }),
   me: () => request<UserDTO>("/api/v1/auth/me"),
+  updateMe: (input: { fullName: string; phone: string; bankName?: string; bankAccountNumber?: string; bankAccountName?: string }) =>
+    request<UserDTO>("/api/v1/auth/me", { method: "PATCH", body: input }),
+  forgotPassword: (email: string) =>
+    request<void>("/api/v1/auth/forgot-password", { method: "POST", body: { email } }),
+  resetPassword: (token: string, password: string) =>
+    request<void>("/api/v1/auth/reset-password", { method: "POST", body: { token, password } }),
 
   // ads
   listAds: (params?: { side?: "buy" | "sell"; asset?: string }) => {
@@ -199,11 +245,21 @@ export const api = {
     request<OrderDTO>(`/api/v1/orders/${id}/mark-paid`, { method: "POST", body: { proofUrl } }),
   depositInstructions: (id: string) =>
     request<{ address: string; chain: string; tag: string }>(`/api/v1/orders/${id}/deposit-instructions`),
+  paymentInstructions: (id: string) =>
+    request<{ bankName: string; accountNumber: string; accountName: string }>(`/api/v1/orders/${id}/payment-instructions`),
   submitDeposit: (id: string, txId: string) =>
     request<OrderDTO>(`/api/v1/orders/${id}/submit-deposit`, { method: "POST", body: { txId } }),
   confirmPayment: (id: string) => request<OrderDTO>(`/api/v1/orders/${id}/confirm-payment`, { method: "POST" }),
   cancelOrder: (id: string) => request<OrderDTO>(`/api/v1/orders/${id}/cancel`, { method: "POST" }),
+  adminListOrders: () => request<OrderDTO[]>("/api/v1/admin/orders"),
+  adminListAllOrders: () => request<OrderDTO[]>("/api/v1/admin/orders/all"),
   adminReleaseOrder: (id: string) => request<OrderDTO>(`/api/v1/admin/orders/${id}/release`, { method: "POST" }),
+  adminListWhitelist: () => request<WhitelistedAddressDTO[]>("/api/v1/admin/wallet-whitelist"),
+  adminMarkWhitelisted: (input: { address: string; chain: string; asset: string }) =>
+    request<WhitelistedAddressDTO>("/api/v1/admin/wallet-whitelist", { method: "POST", body: input }),
+  adminListDepositAddresses: () => request<DepositAddressDTO[]>("/api/v1/admin/deposit-addresses"),
+  adminSetDepositAddress: (input: { asset: string; chain: string; address: string; tag?: string }) =>
+    request<DepositAddressDTO>("/api/v1/admin/deposit-addresses", { method: "POST", body: input }),
 
   // chat
   getMessages: (orderId: string) => request<MessageDTO[]>(`/api/v1/orders/${orderId}/messages`),
@@ -230,6 +286,8 @@ export const api = {
 
   // admin
   adminListUsers: () => request<UserDTO[]>("/api/v1/admin/users"),
+  adminSetUserDisabled: (id: string, disabled: boolean) =>
+    request<void>(`/api/v1/admin/users/${id}/disabled`, { method: "PATCH", body: { disabled } }),
   adminBybitBalance: () => request<Record<string, number>>("/api/v1/admin/bybit/balance"),
 
   // uploads

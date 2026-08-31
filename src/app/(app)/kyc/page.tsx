@@ -1,24 +1,53 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { ShieldCheck, ShieldAlert, ShieldQuestion } from "lucide-react";
+import Alert from "@mui/material/Alert";
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Chip from "@mui/material/Chip";
+import MenuItem from "@mui/material/MenuItem";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import GppGoodIcon from "@mui/icons-material/GppGood";
+import ShieldIcon from "@mui/icons-material/Shield";
 import { api, ApiError, type KYCDTO } from "@/lib/api";
 import { useSession } from "@/lib/session-context";
-import { inputClass, pageClass, primaryButtonClass, topBarClass } from "@/lib/ui";
+import { PageFrame } from "@/components/muiapp/PageFrame";
 
-const statusMeta: Record<KYCDTO["status"], { label: string; className: string; icon: typeof ShieldCheck }> = {
-  unverified: { label: "Not submitted", className: "bg-cream-200 text-maroon-950/60", icon: ShieldQuestion },
-  pending: { label: "Under review", className: "bg-gold-100 text-gold-700", icon: ShieldAlert },
-  verified: { label: "Verified", className: "bg-emerald-100 text-emerald-700", icon: ShieldCheck },
-  rejected: { label: "Rejected — resubmit", className: "bg-red-100 text-red-700", icon: ShieldAlert },
+const statusColor: Record<KYCDTO["status"], "default" | "warning" | "success" | "error"> = {
+  unverified: "default",
+  pending: "warning",
+  verified: "success",
+  rejected: "error",
 };
 
-export default function ProfilePage() {
+const statusLabel: Record<KYCDTO["status"], string> = {
+  unverified: "Not submitted",
+  pending: "Under review",
+  verified: "Verified",
+  rejected: "Rejected — resubmit",
+};
+
+const idTypes = [
+  { value: "national_id", label: "National ID (NIN)" },
+  { value: "passport", label: "International Passport" },
+  { value: "drivers_license", label: "Driver's License" },
+  { value: "voters_card", label: "Voter's Card" },
+];
+
+export default function KycPage() {
   const { user } = useSession();
   const [kyc, setKyc] = useState<KYCDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [idType, setIdType] = useState("");
+  const [idNumber, setIdNumber] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
@@ -29,24 +58,25 @@ export default function ProfilePage() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    setFullName(user?.fullName || "");
+  }, [user]);
+
   const status = kyc?.status ?? user?.kycStatus ?? "unverified";
-  const meta = statusMeta[status];
-  const Icon = meta.icon;
   const canSubmit = status === "unverified" || status === "rejected";
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     if (!file) {
       setError("Attach a photo of your ID.");
       return;
     }
     setError("");
     setSubmitting(true);
-    const data = new FormData(e.currentTarget);
     const form = new FormData();
-    form.append("fullName", String(data.get("fullName")));
-    form.append("idType", String(data.get("idType")));
-    form.append("idNumber", String(data.get("idNumber")));
+    form.append("fullName", fullName);
+    form.append("idType", idType);
+    form.append("idNumber", idNumber);
     form.append("document", file);
     try {
       const result = await api.submitKYC(form);
@@ -59,73 +89,71 @@ export default function ProfilePage() {
   }
 
   return (
-    <div>
-      <div className={topBarClass}>
-        <h1 className="font-display text-xl font-extrabold text-maroon-950">Profile</h1>
-      </div>
+    <PageFrame backHref="/profile">
+      {loading ? (
+        <Typography color="text.secondary">Loading verification status...</Typography>
+      ) : (
+        <Stack spacing={{ xs: 1.6, md: 2.5 }}>
+          <Stack direction="row" spacing={1.4} alignItems="center">
+            <Avatar sx={{ width: 54, height: 54, bgcolor: "#611818", fontWeight: 1000 }}>
+              {user?.fullName?.[0]?.toUpperCase() ?? "U"}
+            </Avatar>
+            <Box sx={{ flexGrow: 1 }}>
+              <Typography sx={{ fontWeight: 1000, fontSize: { xs: 20, md: 26 } }}>{user?.fullName}</Typography>
+              <Typography color="text.secondary" sx={{ fontSize: 14 }}>{user?.email}</Typography>
+            </Box>
+            <Chip icon={<ShieldIcon />} label={statusLabel[status]} color={statusColor[status]} sx={{ fontWeight: 900 }} />
+          </Stack>
 
-      <div className={pageClass}>
-        {loading ? (
-          <p className="text-sm text-maroon-950/50">Loading profile…</p>
-        ) : (
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-maroon-700 font-display text-lg font-bold text-white">
-                {user?.fullName?.[0]?.toUpperCase() ?? "U"}
-              </span>
-              <div>
-                <p className="font-display text-lg font-extrabold text-maroon-950">{user?.fullName}</p>
-                <p className="text-sm text-maroon-950/50">{user?.email}</p>
-              </div>
-            </div>
-            <div className={`inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${meta.className}`}>
-              <Icon size={14} />
-              Verification: {meta.label}
-            </div>
+          {kyc?.reviewNote && status === "rejected" && (
+            <Alert severity="error" sx={{ borderRadius: 3 }}>{kyc.reviewNote}</Alert>
+          )}
 
-            {kyc?.reviewNote && status === "rejected" && (
-              <p className="rounded-xl bg-red-50 p-4 text-sm text-red-600">{kyc.reviewNote}</p>
-            )}
+          {status === "verified" && (
+            <Card variant="outlined" sx={{ borderRadius: 5, borderColor: "rgba(217,134,31,0.24)", bgcolor: "#fdf6e9" }}>
+              <CardContent sx={{ p: { xs: 2, md: 3 }, textAlign: "center" }}>
+                <GppGoodIcon sx={{ fontSize: 40, color: "#8a5a10", mb: 1 }} />
+                <Typography sx={{ fontWeight: 1000, fontSize: 18, color: "#8a5a10" }}>You&apos;re verified</Typography>
+                <Typography color="text.secondary" sx={{ mt: 0.5 }}>Higher trading limits are unlocked on your account.</Typography>
+              </CardContent>
+            </Card>
+          )}
 
-            {canSubmit && (
-              <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                <p className="mt-2 font-bold text-maroon-950">Verify your identity</p>
-                <input
-                  id="fullName"
-                  name="fullName"
-                  required
-                  defaultValue={user?.fullName}
-                  placeholder="Full legal name"
-                  className={inputClass}
-                />
-                <select id="idType" name="idType" required defaultValue="" className={inputClass}>
-                  <option value="" disabled>
-                    Select ID type
-                  </option>
-                  <option value="national_id">National ID (NIN)</option>
-                  <option value="passport">International Passport</option>
-                  <option value="drivers_license">Driver&apos;s License</option>
-                  <option value="voters_card">Voter&apos;s Card</option>
-                </select>
-                <input id="idNumber" name="idNumber" required placeholder="ID number" className={inputClass} />
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-sm font-semibold text-maroon-950/70">ID document (photo or scan)</span>
-                  <input
-                    type="file"
-                    accept="image/*,application/pdf"
-                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                    className="block text-sm text-maroon-950/70 file:mr-3 file:rounded-full file:border-0 file:bg-maroon-700 file:px-4 file:py-2 file:text-sm file:font-bold file:text-cream-50"
-                  />
-                </div>
-                {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
-                <button type="submit" disabled={submitting} className={`${primaryButtonClass} mt-1`}>
-                  {submitting ? "Submitting…" : "Submit for verification"}
-                </button>
-              </form>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+          {status === "pending" && (
+            <Alert severity="info" sx={{ borderRadius: 3 }}>Your documents are under review. This usually takes less than 24 hours.</Alert>
+          )}
+
+          {canSubmit && (
+            <Card variant="outlined" sx={{ borderRadius: { xs: 4, md: 5 }, borderColor: "rgba(217,134,31,0.18)" }}>
+              <CardContent sx={{ p: { xs: 1.75, md: 3 } }}>
+                <Stack component="form" onSubmit={handleSubmit} spacing={1.6}>
+                  <Typography sx={{ fontWeight: 1000, fontSize: 18 }}>Verify your identity</Typography>
+                  <TextField label="Full legal name" value={fullName} onChange={(event) => setFullName(event.target.value)} required fullWidth />
+                  <TextField label="ID type" select value={idType} onChange={(event) => setIdType(event.target.value)} required fullWidth>
+                    {idTypes.map((type) => (
+                      <MenuItem key={type.value} value={type.value}>{type.label}</MenuItem>
+                    ))}
+                  </TextField>
+                  <TextField label="ID number" value={idNumber} onChange={(event) => setIdNumber(event.target.value)} required fullWidth />
+                  <Button component="label" variant="outlined" sx={{ alignSelf: "flex-start", borderColor: "rgba(217,134,31,0.4)" }}>
+                    {file ? file.name : "Upload ID document"}
+                    <input hidden type="file" accept="image/*,application/pdf" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
+                  </Button>
+                  {error && <Alert severity="error">{error}</Alert>}
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={submitting}
+                    sx={{ alignSelf: "flex-start", bgcolor: "#611818", "&:hover": { bgcolor: "#4a1212" } }}
+                  >
+                    {submitting ? "Submitting..." : "Submit for verification"}
+                  </Button>
+                </Stack>
+              </CardContent>
+            </Card>
+          )}
+        </Stack>
+      )}
+    </PageFrame>
   );
 }

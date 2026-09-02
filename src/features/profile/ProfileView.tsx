@@ -15,10 +15,11 @@ import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import MarkEmailUnreadIcon from "@mui/icons-material/MarkEmailUnread";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
-import { money, type AdDTO, type UserDTO } from "@/lib/api";
+import { api, ApiError, money, type AdDTO, type UserDTO } from "@/lib/api";
 import { coinIconUrls } from "@/components/muiapp/CoinIcon";
 import { BoxedTextField } from "@/components/muiapp/BoxedTextField";
 import { whatsappLink } from "@/lib/site";
@@ -62,6 +63,20 @@ export function ProfileView({
   const [bankAccountName, setBankAccountName] = useState(user?.bankAccountName || "");
   const [saving, setSaving] = useState(false);
   const [alertsEnabled, setAlertsEnabled] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
+
+  async function resendVerification() {
+    if (!user?.email) return;
+    setResendingVerification(true);
+    try {
+      await api.resendVerification(user.email);
+      onSuccess("Verification email sent — check your inbox.");
+    } catch (err) {
+      onError(err instanceof ApiError ? err.message : "Couldn't resend the verification email.");
+    } finally {
+      setResendingVerification(false);
+    }
+  }
 
   useEffect(() => {
     setName(user?.fullName || "");
@@ -197,6 +212,31 @@ export function ProfileView({
                       </Box>
                     </Stack>
                     <ArrowForwardIcon sx={{ color: "#fff" }} />
+                  </Stack>
+                </CardContent>
+              </Card>
+            )}
+
+            {!user.emailVerified && (
+              <Card variant="outlined" sx={{ borderRadius: 3, borderColor: "rgba(217,134,31,0.18)" }}>
+                <CardContent sx={{ p: { xs: 2, md: 2.5 } }}>
+                  <Stack spacing={1.5}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <MarkEmailUnreadIcon sx={{ color: "#611818" }} />
+                      <Box>
+                        <Typography sx={{ fontWeight: 1000 }}>Verify your email</Typography>
+                        <Typography color="text.secondary" sx={{ fontSize: 13 }}>Required before you can open trades.</Typography>
+                      </Box>
+                    </Stack>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      disabled={resendingVerification}
+                      onClick={resendVerification}
+                      sx={{ alignSelf: "flex-start", borderColor: "rgba(217,134,31,0.4)" }}
+                    >
+                      {resendingVerification ? "Sending..." : "Resend verification email"}
+                    </Button>
                   </Stack>
                 </CardContent>
               </Card>

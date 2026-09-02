@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Alert from "@mui/material/Alert";
+import Button from "@mui/material/Button";
 import Snackbar from "@mui/material/Snackbar";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import GavelIcon from "@mui/icons-material/Gavel";
@@ -12,6 +13,7 @@ import StorefrontIcon from "@mui/icons-material/Storefront";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import { useSession } from "@/lib/session-context";
+import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 import { AdminShell, type AdminNavItem } from "@/components/muiapp/AdminShell";
 import { OverviewTab } from "@/features/admin/OverviewTab";
 import { UsersTab } from "@/features/admin/UsersTab";
@@ -49,6 +51,7 @@ export default function AdminPage() {
   const [tab, setTab] = useState<TabKey>("overview");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const { latest: newMessage, dismiss: dismissNewMessage } = useAdminNotifications(Boolean(user && user.role === "admin"));
 
   useEffect(() => {
     if (user && user.role !== "admin") router.replace("/market");
@@ -78,6 +81,29 @@ export default function AdminPage() {
       </Snackbar>
       <Snackbar open={Boolean(success)} autoHideDuration={4000} onClose={() => setSuccess("")}>
         <Alert severity="success" onClose={() => setSuccess("")}>{success}</Alert>
+      </Snackbar>
+      <Snackbar open={Boolean(newMessage)} autoHideDuration={8000} onClose={dismissNewMessage} anchorOrigin={{ vertical: "top", horizontal: "right" }}>
+        {newMessage ? (
+          <Alert
+            severity="info"
+            onClose={dismissNewMessage}
+            sx={{ bgcolor: "#611818", color: "#fff", "& .MuiAlert-icon": { color: "#fff" } }}
+            action={
+              <Button
+                size="small"
+                onClick={() => {
+                  setTab("trades");
+                  dismissNewMessage();
+                }}
+                sx={{ color: "#fff", fontWeight: 900 }}
+              >
+                View
+              </Button>
+            }
+          >
+            {newMessage.senderName}: {newMessage.preview} ({newMessage.amount} {newMessage.asset})
+          </Alert>
+        ) : undefined}
       </Snackbar>
     </AdminShell>
   );

@@ -96,6 +96,7 @@ export type UserDTO = {
   role: "user" | "admin";
   kycStatus: "unverified" | "pending" | "verified" | "rejected";
   disabled: boolean;
+  emailVerified: boolean;
   createdAt: string;
   bankName?: string;
   bankAccountNumber?: string;
@@ -224,6 +225,10 @@ export const api = {
     request<void>("/api/v1/auth/forgot-password", { method: "POST", body: { email } }),
   resetPassword: (token: string, password: string) =>
     request<void>("/api/v1/auth/reset-password", { method: "POST", body: { token, password } }),
+  verifyEmail: (token: string) =>
+    request<void>("/api/v1/auth/verify-email", { method: "POST", body: { token } }),
+  resendVerification: (email: string) =>
+    request<void>("/api/v1/auth/resend-verification", { method: "POST", body: { email } }),
 
   // ads
   listAds: (params?: { side?: "buy" | "sell"; asset?: string }) => {

@@ -3,10 +3,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Container from "@mui/material/Container";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
-import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -51,7 +49,11 @@ export function AuthPageView({ mode }: { mode: AuthMode }) {
       const destination = !explicitNext && authedUser.role === "admin" ? "/admin" : nextPath;
       window.location.href = destination;
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
+      if (err instanceof ApiError && err.status === 409) {
+        setError("An account with this email already exists. Try logging in instead.");
+      } else {
+        setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -61,122 +63,122 @@ export function AuthPageView({ mode }: { mode: AuthMode }) {
   const switchHref = `${isLogin ? "/signup" : "/login"}?next=${encodeURIComponent(nextPath)}`;
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#faf7f0", px: { xs: 2, sm: 3 }, py: { xs: 4, md: 8 }, overflowX: "hidden" }}>
-      <Container maxWidth="sm" disableGutters>
-        <Stack spacing={{ xs: 4, md: 5 }}>
-          <Button href="/" sx={{ alignSelf: "flex-start", p: 0, minHeight: "auto" }}>
+    <Box
+      sx={{
+        minHeight: "100dvh",
+        bgcolor: "#faf7f0",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        px: { xs: 2, sm: 3 },
+        py: { xs: 5, sm: 6 },
+        overflowX: "hidden",
+      }}
+    >
+      <Box sx={{ width: "100%", maxWidth: 440 }}>
+        <Stack alignItems="center" sx={{ mb: { xs: 3, sm: 4 } }}>
+          <Button href="/" sx={{ p: 0, minHeight: "auto" }}>
             <Logo markSize={38} />
           </Button>
+        </Stack>
 
-          <Box>
-            <Typography sx={{ color: "#200808", fontWeight: 1000, fontSize: { xs: 38, sm: 46 }, lineHeight: 1.02, letterSpacing: 0 }}>
-              {isLogin ? "Welcome Back," : "Create Account,"}
-            </Typography>
-            <Typography sx={{ mt: 1.2, color: "#7a5a5a", fontWeight: 800, fontSize: { xs: 20, sm: 23 }, lineHeight: 1.35 }}>
-              {isLogin ? "Kindly enter your details to log in." : "Kindly enter your details to get started."}
-            </Typography>
-          </Box>
+        <Box
+          sx={{
+            bgcolor: "#fff",
+            border: "1px solid rgba(32,8,8,0.08)",
+            borderRadius: { xs: 3, sm: 4 },
+            p: { xs: 2.75, sm: 4 },
+            boxShadow: "0 1px 3px rgba(32,8,8,0.04)",
+          }}
+        >
+          <Typography sx={{ color: "#200808", fontWeight: 1000, fontSize: { xs: 22, sm: 26 }, letterSpacing: "-0.02em" }}>
+            {isLogin ? "Welcome back" : "Create your account"}
+          </Typography>
+          <Typography sx={{ mt: 0.5, color: "#7a5a5a", fontSize: { xs: 13.5, sm: 14.5 } }}>
+            {isLogin ? "Log in to your Thiago Exchange account." : "Sign up to start trading with Thiago Exchange."}
+          </Typography>
 
-          <Stack spacing={{ xs: 2.5, md: 3 }}>
+          <Stack spacing={2.25} sx={{ mt: { xs: 3, sm: 3.5 } }}>
             {error && (
-              <Paper sx={{ p: 1.5, borderRadius: 2, bgcolor: "#fff1f2", color: "#be123c", border: "1px solid #fecdd3", boxShadow: "none" }}>
-                <Typography sx={{ fontWeight: 800, fontSize: 14 }}>{error}</Typography>
-              </Paper>
+              <Box sx={{ p: 1.4, borderRadius: 2, bgcolor: "#fbebeb", border: "1px solid rgba(97,24,24,0.14)" }}>
+                <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: "#611818" }}>{error}</Typography>
+              </Box>
             )}
 
             {mode === "register" && (
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <AuthField label="Full Name" placeholder="Your full name" value={name} onChange={setName} />
-                </Box>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <AuthField label="Phone Number" placeholder="+234..." value={phone} onChange={setPhone} />
-                </Box>
-              </Stack>
+              <>
+                <AuthField label="Full name" placeholder="Your full name" value={name} onChange={setName} />
+                <AuthField label="Phone number" placeholder="+234..." value={phone} onChange={setPhone} />
+              </>
             )}
 
-            <AuthField label="Email Address" placeholder="example@gmail.com" value={email} onChange={setEmail} type="email" />
+            <AuthField label="Email" placeholder="you@example.com" value={email} onChange={setEmail} type="email" />
+
             <AuthField
               label="Password"
-              placeholder="********"
+              placeholder="••••••••"
               value={password}
               onChange={setPassword}
               type={showPassword ? "text" : "password"}
+              labelAction={
+                isLogin ? (
+                  <Button
+                    href="/forgot-password"
+                    sx={{ minHeight: "auto", p: 0, fontSize: 12.5, fontWeight: 800, color: "#d9861f" }}
+                  >
+                    Forgot password?
+                  </Button>
+                ) : undefined
+              }
               endAdornment={
                 <InputAdornment position="end">
                   <IconButton
                     edge="end"
                     aria-label={showPassword ? "hide password" : "show password"}
                     onClick={() => setShowPassword((value) => !value)}
-                    sx={{ color: "#7a5a5a" }}
+                    sx={{ color: "#a58888" }}
                   >
-                    {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    {showPassword ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
                   </IconButton>
                 </InputAdornment>
               }
             />
 
-            {isLogin && (
-              <Button
-                href="/forgot-password"
-                sx={{
-                  alignSelf: "flex-start",
-                  minHeight: "auto",
-                  p: 0,
-                  borderRadius: 0,
-                  color: "#d9861f",
-                  borderBottom: "1px solid #d9861f",
-                  fontSize: 18,
-                  fontWeight: 900,
-                }}
-              >
-                Forgot Password
-              </Button>
-            )}
-
             <Button
               variant="contained"
               size="large"
+              fullWidth
               disabled={submitting}
               onClick={submit}
               sx={{
-                mt: { xs: 1, md: 1.5 },
-                minHeight: 60,
+                mt: 0.5,
+                minHeight: 50,
                 borderRadius: 2,
                 bgcolor: "#611818",
                 color: "#fff",
-                fontSize: 18,
-                fontWeight: 1000,
-                "&:hover": { bgcolor: "#4a1212" },
+                fontSize: 15.5,
+                fontWeight: 900,
+                textTransform: "none",
+                boxShadow: "none",
+                "&:hover": { bgcolor: "#4a1212", boxShadow: "none" },
                 "&.Mui-disabled": { bgcolor: "#c9a9a9", color: "#fff" },
               }}
             >
-              {submitting ? "Please wait..." : isLogin ? "Login" : "Create Account"}
+              {submitting ? "Please wait..." : isLogin ? "Log in" : "Create account"}
             </Button>
 
-            <Typography sx={{ color: "#200808", textAlign: "center", fontSize: { xs: 16, sm: 18 }, fontWeight: 900 }}>
+            <Typography sx={{ color: "#7a5a5a", textAlign: "center", fontSize: 13.5, fontWeight: 600 }}>
               {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
               <Button
                 href={switchHref}
-                sx={{ minHeight: "auto", p: 0, verticalAlign: "baseline", color: "#d9861f", fontSize: "inherit", fontWeight: 1000 }}
+                sx={{ minHeight: "auto", p: 0, verticalAlign: "baseline", color: "#611818", fontSize: "inherit", fontWeight: 900, textTransform: "none" }}
               >
-                {isLogin ? "Create Account" : "Login"}
+                {isLogin ? "Sign up" : "Log in"}
               </Button>
             </Typography>
           </Stack>
-
-          <Paper sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, bgcolor: "#fff", boxShadow: "none" }}>
-            <Typography sx={{ color: "#7a5a5a", fontWeight: 1000, fontSize: 15 }}>SECURE ACCESS</Typography>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.2} sx={{ mt: 0.5 }}>
-              {["Live offers", "Escrow-protected trades", "Trade history"].map((item) => (
-                <Box key={item} sx={{ flex: 1, minWidth: 0, p: 1.2, borderRadius: 2, bgcolor: "#faf7f0", color: "#200808", fontWeight: 900, textAlign: "center", fontSize: 13 }}>
-                  {item}
-                </Box>
-              ))}
-            </Stack>
-          </Paper>
-        </Stack>
-      </Container>
+        </Box>
+      </Box>
     </Box>
   );
 }
@@ -188,6 +190,7 @@ function AuthField({
   onChange,
   type = "text",
   endAdornment,
+  labelAction,
 }: {
   label: string;
   placeholder: string;
@@ -195,10 +198,14 @@ function AuthField({
   onChange: (value: string) => void;
   type?: string;
   endAdornment?: ReactNode;
+  labelAction?: ReactNode;
 }) {
   return (
-    <Stack spacing={1}>
-      <Typography sx={{ color: "#7a5a5a", fontWeight: 900, fontSize: { xs: 15, sm: 16 } }}>{label}</Typography>
+    <Stack spacing={0.75}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Typography sx={{ color: "#4a3838", fontWeight: 700, fontSize: 13 }}>{label}</Typography>
+        {labelAction}
+      </Stack>
       <TextField
         type={type}
         value={value}
@@ -208,20 +215,19 @@ function AuthField({
         InputProps={{ endAdornment }}
         sx={{
           "& .MuiOutlinedInput-root": {
-            minHeight: 64,
+            minHeight: 46,
             bgcolor: "#fff",
-            borderRadius: 1,
-            fontSize: { xs: 18, sm: 20 },
+            borderRadius: 1.5,
+            fontSize: 14.5,
             color: "#200808",
-            "& fieldset": { borderColor: "transparent" },
-            "&:hover fieldset": { borderColor: "transparent" },
-            "&.Mui-focused": { bgcolor: "#fdf6e9" },
-            "&.Mui-focused fieldset": { borderColor: "#d9861f", borderWidth: 2 },
+            "& fieldset": { borderColor: "rgba(32,8,8,0.14)" },
+            "&:hover fieldset": { borderColor: "rgba(32,8,8,0.24)" },
+            "&.Mui-focused fieldset": { borderColor: "#d9861f", borderWidth: 1.5 },
           },
           "& .MuiInputBase-input": {
-            px: 2,
-            py: 1.65,
-            "&::placeholder": { color: "#a58888", opacity: 1, fontWeight: 800 },
+            px: 1.6,
+            py: 1.2,
+            "&::placeholder": { color: "#b8a3a3", opacity: 1, fontWeight: 500 },
           },
         }}
       />

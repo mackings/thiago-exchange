@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { api, ApiError, setAccessToken, tryRefresh, type UserDTO } from "@/lib/api";
+import { api, ApiError, setAccessToken, setStoredRefreshToken, tryRefresh, type UserDTO } from "@/lib/api";
 
 type SessionState = {
   user: UserDTO | null;
@@ -39,6 +39,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     const res = await api.login({ email, password });
     setAccessToken(res.accessToken);
+    setStoredRefreshToken(res.refreshToken);
     setUser(res.user);
     return res.user;
   }, []);
@@ -47,6 +48,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     async (input: { email: string; password: string; fullName: string; phone?: string }) => {
       const res = await api.register(input);
       setAccessToken(res.accessToken);
+      setStoredRefreshToken(res.refreshToken);
       setUser(res.user);
       return res.user;
     },
@@ -60,6 +62,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       // best-effort — clear local state regardless
     }
     setAccessToken(null);
+    setStoredRefreshToken(null);
     setUser(null);
   }, []);
 

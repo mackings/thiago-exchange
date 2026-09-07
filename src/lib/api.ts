@@ -23,13 +23,40 @@ export class ApiError extends Error {
 }
 
 // Held in memory only (not localStorage) so an XSS bug can't just read it
-// off disk — a page refresh re-derives it via the httpOnly refresh cookie.
+// off disk — a page refresh re-derives it via the refresh token below.
 let accessToken: string | null = null;
 export function setAccessToken(token: string | null) {
   accessToken = token;
 }
 export function getAccessToken() {
   return accessToken;
+}
+
+// The refresh token is meant to live only in the httpOnly cookie the API
+// sets — but that cookie is a third-party cookie whenever the frontend and
+// API are on different registrable domains (exactly the case for the
+// current *.onrender.com + *.onrender.com setup), and Safari in particular
+// blocks third-party cookies outright regardless of SameSite=None. So the
+// API also returns the refresh token in the response body, and this is the
+// fallback: only read/sent when the cookie-based refresh has already
+// failed. This does trade away the cookie's XSS protection for that token,
+// but only as a fallback path — once frontend and API share a registrable
+// domain, the cookie alone works and this is never touched.
+const refreshTokenKey = "thiago.refreshToken";
+export function setStoredRefreshToken(token: string | null) {
+  try {
+    if (token) localStorage.setItem(refreshTokenKey, token);
+    else localStorage.removeItem(refreshTokenKey);
+  } catch {
+    // localStorage unavailable (private mode, SSR) — the cookie path still works when it can.
+  }
+}
+function getStoredRefreshToken(): string | null {
+  try {
+    return localStorage.getItem(refreshTokenKey);
+  } catch {
+    return null;
+  }
 }
 
 type FetchOptions = Omit<RequestInit, "body"> & { body?: unknown };
@@ -74,10 +101,20 @@ async function request<T>(path: string, opts: FetchOptions = {}, retry = true): 
 
 async function tryRefresh(): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/api/v1/auth/refresh`, { method: "POST", credentials: "include" });
+    const stored = getStoredRefreshToken();
+    const res = await fetch(`${API_BASE}/api/v1/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+      // Sent purely as a fallback for when the cookie didn't make it back
+      // (see setStoredRefreshToken above) — the server prefers the cookie
+      // when both are present.
+      headers: stored ? { "Content-Type": "application/json" } : undefined,
+      body: stored ? JSON.stringify({ refreshToken: stored }) : undefined,
+    });
     if (!res.ok) return false;
-    const data = (await res.json()) as { accessToken: string };
+    const data = (await res.json()) as { accessToken: string; refreshToken?: string };
     setAccessToken(data.accessToken);
+    if (data.refreshToken) setStoredRefreshToken(data.refreshToken);
     return true;
   } catch {
     return false;
@@ -214,9 +251,9 @@ export type DepositAddressDTO = {
 export const api = {
   // auth
   register: (input: { email: string; password: string; fullName: string; phone?: string }) =>
-    request<{ user: UserDTO; accessToken: string }>("/api/v1/auth/register", { method: "POST", body: input }),
+    request<{ user: UserDTO; accessToken: string; refreshToken: string }>("/api/v1/auth/register", { method: "POST", body: input }),
   login: (input: { email: string; password: string }) =>
-    request<{ user: UserDTO; accessToken: string }>("/api/v1/auth/login", { method: "POST", body: input }),
+    request<{ user: UserDTO; accessToken: string; refreshToken: string }>("/api/v1/auth/login", { method: "POST", body: input }),
   logout: () => request<void>("/api/v1/auth/logout", { method: "POST" }),
   me: () => request<UserDTO>("/api/v1/auth/me"),
   updateMe: (input: { fullName: string; phone: string; bankName?: string; bankAccountNumber?: string; bankAccountName?: string }) =>

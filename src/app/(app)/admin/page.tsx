@@ -61,7 +61,12 @@ export default function AdminPage() {
     // flight would kick out a real admin whose session just hasn't loaded
     // yet, which is exactly what a slow cold start on a free-tier host
     // looks like from the outside.
-    if (!loading && user && user.role !== "admin") router.replace("/market");
+    if (loading) return;
+    if (!user) {
+      router.replace("/login?next=/admin");
+    } else if (user.role !== "admin") {
+      router.replace("/market");
+    }
   }, [loading, user, router]);
 
   if (loading) {

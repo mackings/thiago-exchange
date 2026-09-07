@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import Snackbar from "@mui/material/Snackbar";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import GavelIcon from "@mui/icons-material/Gavel";
@@ -46,7 +48,7 @@ const tabCopy: Record<TabKey, { title: string; subtitle: string }> = {
 };
 
 export default function AdminPage() {
-  const { user } = useSession();
+  const { user, loading } = useSession();
   const router = useRouter();
   const [tab, setTab] = useState<TabKey>("overview");
   const [error, setError] = useState("");
@@ -54,8 +56,21 @@ export default function AdminPage() {
   const { latest: newMessage, dismiss: dismissNewMessage } = useAdminNotifications(Boolean(user && user.role === "admin"));
 
   useEffect(() => {
-    if (user && user.role !== "admin") router.replace("/market");
-  }, [user, router]);
+    // Only redirect once the session has actually resolved — redirecting
+    // (or blanking the page) while the refresh/me round-trip is still in
+    // flight would kick out a real admin whose session just hasn't loaded
+    // yet, which is exactly what a slow cold start on a free-tier host
+    // looks like from the outside.
+    if (!loading && user && user.role !== "admin") router.replace("/market");
+  }, [loading, user, router]);
+
+  if (loading) {
+    return (
+      <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", bgcolor: "#faf7f0" }}>
+        <CircularProgress sx={{ color: "#611818" }} />
+      </Box>
+    );
+  }
 
   if (!user || user.role !== "admin") return null;
 
